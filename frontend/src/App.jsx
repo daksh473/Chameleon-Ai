@@ -14,7 +14,6 @@ import EmailView from "./components/EmailView";
 import CrmView from "./components/CrmView";
 import AgentConsole from "./components/AgentConsole";
 import ExcelView from "./components/ExcelView";
-import LandingPage from "./components/landing/LandingPage";
 
 const API = "http://localhost:8000";
 
@@ -217,7 +216,7 @@ export default function App() {
   const [lastEmotion, setLastEmotion] = useState("neutral");
   const [alert, setAlert]             = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [activeView, setActiveView]   = useState("landing");
+  const [activeView, setActiveView]   = useState("chat");
   const [activeTicketId, setActiveTicketId] = useState(null);
   const [channelFilter, setChannelFilter] = useState("All Channels");
 
@@ -484,19 +483,6 @@ export default function App() {
 
   const intensityScore = getIntensity(lastEmotion);
 
-  if (activeView === "landing") {
-    return (
-      <div style={{ height: "100vh", overflow: "auto", background: "#f9fafb" }}>
-        <LandingPage onStart={() => setActiveView("chat")} />
-        <button
-          onClick={() => setActiveView("chat")}
-          style={{ position: "fixed", bottom: 24, right: 24, zIndex: 9999, background: "#0a0a0a", color: "#fff", border: "1px solid rgba(255,255,255,0.15)", padding: "10px 20px", borderRadius: 999, fontSize: 13, cursor: "pointer", backdropFilter: "blur(12px)", fontFamily: "inherit" }}
-        >
-          Open CRM Dashboard →
-        </button>
-      </div>
-    );
-  }
 
   return (
     <div className="app-shell">
