@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import {
   Plus, ArrowUp, MessageSquare, BarChart3, Settings,
   CircleDot, AlertTriangle, X, Clock, Wifi, Inbox, LayoutDashboard, Database, Mic, MicOff, Mail, Users, Headset,
-  Volume2, VolumeX, Brain, ChevronDown, ChevronUp, ExternalLink, Sparkles, FileSpreadsheet
+  Volume2, VolumeX, Brain, ChevronDown, ChevronUp, ExternalLink, Sparkles, FileSpreadsheet, Send
 } from "lucide-react";
 import "./App.css";
 import SettingsView from "./SettingsView";
@@ -219,6 +219,7 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeView, setActiveView]   = useState("landing");
   const [activeTicketId, setActiveTicketId] = useState(null);
+  const [channelFilter, setChannelFilter] = useState("All Channels");
 
   // Voice + Memory state
   const [voiceOn, setVoiceOn]         = useState(false);
@@ -251,6 +252,21 @@ export default function App() {
 
   // Latency Simulator Effect
   useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const res = await fetch(`${API}/history`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.length > 0) {
+            setMsgs(data.slice(-100)); // Load up to 100 recent
+          }
+        }
+      } catch (e) {
+        console.error("Failed to load history", e);
+      }
+    };
+    fetchHistory();
+    
     const updatePing = () => {
       const newPing = Math.floor(Math.random() * 50) + 20; 
       const finalPing = Math.random() > 0.9 ? Math.floor(Math.random() * 300) + 100 : newPing;
@@ -701,13 +717,36 @@ export default function App() {
               {msgs.length > 0 && (
                 <div className="messages-area">
                   <div className="messages-header">
-                    <span className="section-label">{T.messages}</span>
-                    <span className="section-count">{msgs.length}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <span className="section-label">{T.messages}</span>
+                      <span className="section-count">{msgs.length}</span>
+                    </div>
+                    <select 
+                      className="channel-filter-select"
+                      value={channelFilter}
+                      onChange={(e) => setChannelFilter(e.target.value)}
+                      style={{ background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid rgba(255,255,255,0.1)', padding: '4px 8px', borderRadius: '4px', fontSize: '13px' }}
+                    >
+                      <option value="All Channels">All Channels</option>
+                      <option value="dashboard">Live Chat</option>
+                      <option value="voice">Voice</option>
+                      <option value="caspian-email">Email (Caspian)</option>
+                      <option value="caspian-telegram">Telegram (Caspian)</option>
+                    </select>
                   </div>
                   <div className="messages-list">
-                    {msgs.map((m, i) => {
+                    {msgs.filter(m => channelFilter === "All Channels" || m.channel === channelFilter || (channelFilter === 'voice' && m.source === 'voice')).map((m, i) => {
                       const meta = ACTION_META[m.action] || ACTION_META.NORMAL;
                       const cardClass = `card-${m.action.toLowerCase()}`;
+                      
+                      // Determine Channel Icon
+                      const channelSrc = m.channel || (m.source === 'voice' ? 'voice' : 'dashboard');
+                      let ChannelIcon = MessageSquare;
+                      let channelName = "Live Chat";
+                      if (channelSrc === 'voice') { ChannelIcon = Mic; channelName = "Voice"; }
+                      else if (channelSrc === 'caspian-email') { ChannelIcon = Mail; channelName = "Email"; }
+                      else if (channelSrc === 'caspian-telegram') { ChannelIcon = Send; channelName = "Telegram"; }
+                      
                       return (
                         <div key={i} className={`message-row fade-in ${cardClass}`} style={{ animationDelay: `${Math.min(i * 20, 200)}ms` }}>
                           {/* User message */}
@@ -718,6 +757,9 @@ export default function App() {
                             <div className="msg-user-body">
                               <div className="msg-user-text">{m.message}</div>
                               <div className="msg-user-tags">
+                                <span className="msg-tag msg-tag-channel" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#333', color: '#fff' }}>
+                                  <ChannelIcon size={12} /> {channelName}
+                                </span>
                                 {m.language && m.language !== "en" && (
                                   <span className="msg-tag" style={{ color: "white", background: LANGUAGE_META[m.language]?.color || "gray" }}>
                                     🇮🇳 {LANGUAGE_META[m.language]?.name || m.language}

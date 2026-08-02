@@ -114,7 +114,17 @@ def init_db():
         pass
         
     try:
+        cursor.execute("ALTER TABLE conversations ADD COLUMN channel TEXT DEFAULT 'dashboard'")
+    except sqlite3.OperationalError:
+        pass
+        
+    try:
         cursor.execute("ALTER TABLE tickets ADD COLUMN language TEXT DEFAULT 'en'")
+    except sqlite3.OperationalError:
+        pass
+        
+    try:
+        cursor.execute("ALTER TABLE tickets ADD COLUMN source TEXT DEFAULT 'dashboard'")
     except sqlite3.OperationalError:
         pass
     
@@ -282,7 +292,7 @@ def init_db():
 # -----------------
 # TICKETS FUNCTIONS
 # -----------------
-def create_ticket(customer_name: str, issue: str, score: float, language: str = "en"):
+def create_ticket(customer_name: str, issue: str, score: float, language: str = "en", source: str = "dashboard"):
     priority = "LOW"
     if score < 0.3:
         priority = "HIGH"
@@ -292,9 +302,9 @@ def create_ticket(customer_name: str, issue: str, score: float, language: str = 
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute('''
-        INSERT INTO tickets (customer_name, issue, status, priority, created_at, language)
-        VALUES (?, ?, ?, ?, ?, ?)
-    ''', (customer_name, issue, "OPEN", priority, datetime.now().isoformat(), language))
+        INSERT INTO tickets (customer_name, issue, status, priority, created_at, language, source)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    ''', (customer_name, issue, "OPEN", priority, datetime.now().isoformat(), language, source))
     ticket_id = cursor.lastrowid
     conn.commit()
     conn.close()
@@ -350,20 +360,20 @@ def get_tickets_stats():
 # -----------------------
 # CONVERSATION FUNCTIONS
 # -----------------------
-def save_conversation_message(session_id: str, role: str, message: str, sentiment_score: float, emotion: str, action: str, language: str = "en"):
+def save_conversation_message(session_id: str, role: str, message: str, sentiment_score: float, emotion: str, action: str, language: str = "en", channel: str = "dashboard"):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute('''
-        INSERT INTO conversations (session_id, role, message, sentiment_score, emotion, action, timestamp, language)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (session_id, role, message, sentiment_score, emotion, action, datetime.now().isoformat(), language))
+        INSERT INTO conversations (session_id, role, message, sentiment_score, emotion, action, timestamp, language, channel)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (session_id, role, message, sentiment_score, emotion, action, datetime.now().isoformat(), language, channel))
     conn.commit()
     conn.close()
 
 # Legacy function for backward compatibility
-def save_conversation(message: str, score: float, emotion: str, action: str, reply: str):
-    save_conversation_message("legacy", "user", message, score, emotion, action)
-    save_conversation_message("legacy", "assistant", reply, score, emotion, action)
+def save_conversation(message: str, score: float, emotion: str, action: str, reply: str, channel: str = "dashboard"):
+    save_conversation_message("legacy", "user", message, score, emotion, action, "en", channel)
+    save_conversation_message("legacy", "assistant", reply, score, emotion, action, "en", channel)
 
 def get_conversation_history(session_id: str):
     conn = sqlite3.connect(DB_PATH)
@@ -393,7 +403,8 @@ def get_all_conversations():
             "emotion": r["emotion"],
             "action": r["action"],
             "reply": "Reply via legacy", # Simplified for legacy
-            "timestamp": r["timestamp"]
+            "timestamp": r["timestamp"],
+            "channel": r["channel"] if "channel" in r.keys() else "dashboard"
         })
     return legacy_format
 

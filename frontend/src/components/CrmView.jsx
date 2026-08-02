@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Users, Target, Activity, DollarSign, Brain, Search, Plus, Trash2, Calendar, FileText, ArrowLeft, Mail, MessageSquare, Mic, Ticket, X } from "lucide-react";
+import { Users, Target, Activity, DollarSign, Brain, Search, Plus, Trash2, Calendar, FileText, ArrowLeft, Mail, MessageSquare, Mic, Ticket, X, Send } from "lucide-react";
 import "./CrmView.css";
 
 const API = "http://localhost:8000";
@@ -297,8 +297,11 @@ export default function CrmView() {
 
   const getIconForType = (type) => {
     switch(type) {
-      case 'email': return <Mail size={14} className="text-blue-400"/>;
-      case 'chat': return <MessageSquare size={14} className="text-green-400"/>;
+      case 'email': 
+      case 'caspian-email': return <Mail size={14} className="text-blue-400"/>;
+      case 'chat': 
+      case 'dashboard': return <MessageSquare size={14} className="text-green-400"/>;
+      case 'caspian-telegram': return <Send size={14} className="text-blue-400"/>;
       case 'ticket': return <Ticket size={14} className="text-purple-400"/>;
       case 'voice': return <Mic size={14} className="text-green-400"/>;
       default: return <MessageSquare size={14} className="text-gray-400"/>;

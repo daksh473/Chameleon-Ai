@@ -18,6 +18,8 @@ from ai.proactive_alerts import proactive_alert_cron
 
 from routers import tickets, conversation, knowledge, analytics, voice, email, crm, handoff, memory, predict, language, excel
 import httpx
+import threading
+from caspian_agent import start_caspian_listener
 
 load_dotenv()
 init_db()
@@ -40,6 +42,11 @@ async def startup_event():
         print(f"Memory backfill: {result}")
     except Exception as e:
         print(f"Memory backfill error: {e}")
+        
+    # Start the Caspian listener in a background thread
+    thread = threading.Thread(target=start_caspian_listener, daemon=True)
+    thread.start()
+    print("Caspian listener thread started.")
 
 app.include_router(tickets.router)
 app.include_router(conversation.router)
