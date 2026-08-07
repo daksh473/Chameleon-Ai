@@ -1,69 +1,101 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { ChevronRight } from 'lucide-react';
-import clsx from 'clsx';
-import { twMerge } from 'tailwind-merge';
-
-function cn(...inputs) {
-  return twMerge(clsx(inputs));
-}
+import { ArrowUp, Sparkles } from 'lucide-react';
+import Navbar from './Navbar';
+import DashboardMockup from './DashboardMockup';
 
 export default function Hero({ onStart }) {
   return (
-    <div className="w-full px-4 pt-4 md:px-8 md:pt-8 bg-[#f9fafb]">
-      <section className="relative w-full max-w-[1400px] mx-auto rounded-[48px] bg-white border border-slate-200/50 shadow-[0_40px_100px_-20px_rgba(0,0,0,0.03)] overflow-hidden h-[600px] flex flex-col">
-        
-        {/* Background Video Layer */}
-        <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden select-none">
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="w-full h-full object-cover scale-105 transition-transform duration-1000"
-          >
-            <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260505_101331_74f9b798-3f00-4e86-8a01-377aa16ffeaa.mp4" type="video/mp4" />
-          </video>
-        </div>
+    <section
+      className="relative min-h-[100svh] overflow-hidden bg-cover bg-center flex flex-col"
+      style={{ backgroundImage: "url('/hero-bg.jpg')" }}
+    >
+      {/* ── Dark overlay for readability ── */}
+      <div className="absolute inset-0 bg-black/40 z-0" />
 
-        {/* Text Content Wrapper */}
-        <motion.div 
-          className="relative z-20 flex-1 px-8 md:px-16 pt-12 md:pt-16 flex flex-col items-start"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
+      {/* ── Navbar ── */}
+      <div className="relative z-20">
+        <Navbar />
+      </div>
+
+      {/* ── Spacer ── */}
+      <div className="flex-1 min-h-8 sm:min-h-12 lg:min-h-16 shrink-0" />
+
+      {/* ── Hero Content ── */}
+      <div className="relative z-10 flex flex-col items-center text-center px-5">
+
+        {/* Headline */}
+        <h1 className="text-white font-normal leading-[1.05] tracking-tight text-[40px] min-[400px]:text-[44px] sm:text-6xl lg:text-7xl xl:text-[80px]">
+          <div className="animate-fade-up">Understand emotion.</div>
+          <div className="animate-fade-up [animation-delay:100ms]">Act in real time.</div>
+        </h1>
+
+        {/* Search / Message Bar */}
+        <form
+          className="animate-fade-up [animation-delay:220ms] mt-5 sm:mt-6 w-full max-w-xl"
+          onSubmit={(e) => { e.preventDefault(); if (onStart) onStart(); }}
         >
-          <h1 className="font-display text-[42px] md:text-[56px] font-medium tracking-tight text-[#0a1b33] leading-tight mb-4">
-            Customer emotions<br />decoded in milliseconds.
-          </h1>
-          <p className="font-sans text-[14px] md:text-[15px] text-[#64748b] max-w-xl mb-8 leading-relaxed">
-            An intelligent CRM layer for founders, support managers, and teams who want to catch frustration before it escalates and trigger upsells on autopilot.
-          </p>
-          <motion.button 
+          <div className="flex items-center gap-3 rounded-full bg-white/60 backdrop-blur-md ring-1 ring-gray-200 pl-5 pr-1.5 py-1.5">
+            <input
+              type="text"
+              className="flex-1 bg-transparent text-sm sm:text-base text-gray-900 placeholder-gray-500 outline-none py-2"
+              placeholder="Type a customer message to analyze..."
+            />
+            <button
+              type="submit"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gray-900 text-white hover:scale-105 active:scale-95 transition-transform shrink-0 flex items-center justify-center"
+            >
+              <ArrowUp className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
+            </button>
+          </div>
+        </form>
+
+        {/* Description */}
+        <p className="animate-fade-up [animation-delay:340ms] mt-4 sm:mt-5 text-gray-300 text-sm sm:text-base lg:text-lg leading-relaxed max-w-md">
+          Detect sentiment, auto-escalate frustration, and trigger upsells —
+          <br />
+          powered by AI that responds in under{' '}
+          <Sparkles className="inline w-4 h-4 -mt-1" /> 1 second
+        </p>
+
+        {/* CTA Buttons */}
+        <div className="animate-fade-up [animation-delay:460ms] mt-4 sm:mt-5 flex flex-wrap items-center justify-center gap-3">
+          <button
             onClick={onStart}
-            className="bg-[#0a152d] text-white px-8 py-3.5 rounded-full font-medium text-sm transition-colors hover:bg-black"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            className="bg-white text-gray-900 text-sm font-medium px-6 py-2.5 rounded-full hover:bg-gray-100 hover:shadow-lg transition-all"
           >
-            Start Free Analysis
-          </motion.button>
-        </motion.div>
-
-        {/* Floating Bottom Navbar */}
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-30">
-          <motion.nav 
-            className="flex items-center bg-white/90 backdrop-blur-2xl px-1.5 py-1.5 rounded-full shadow-[0_12px_40px_rgba(0,0,0,0.08)] border border-slate-200/40"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
+            See Live Demo
+          </button>
+          <a
+            href="https://github.com/daksh473/Chameleon-Ai"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-gray-300 text-sm font-medium px-6 py-2.5 rounded-full ring-1 ring-white/30 hover:bg-white/10 transition-colors"
           >
-            <div className="w-9 h-9 bg-white border border-slate-100 shadow-sm rounded-full flex items-center justify-center">
-              <span className="text-sm">✦</span>
-            </div>
-          </motion.nav>
+            View on GitHub
+          </a>
         </div>
+      </div>
 
-      </section>
-    </div>
+      {/* ── Spacer ── */}
+      <div className="flex-1 min-h-10 sm:min-h-12 lg:min-h-16 shrink-0" />
+
+      {/* ── Dashboard Mockup ── */}
+      <div className="relative z-10">
+        <DashboardMockup />
+      </div>
+
+      {/* ── Ambient Glow Overlay (bottom) ── */}
+      <div
+        className="pointer-events-none absolute bottom-0 left-0 z-10 w-full select-none"
+        style={{ height: '30%' }}
+      >
+        <div
+          className="w-full h-full"
+          style={{
+            background: 'radial-gradient(ellipse 80% 100% at 50% 100%, rgba(91,139,247,0.15) 0%, rgba(91,139,247,0.05) 40%, transparent 70%)',
+          }}
+        />
+      </div>
+    </section>
   );
 }

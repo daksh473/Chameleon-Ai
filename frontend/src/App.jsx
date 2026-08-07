@@ -14,6 +14,7 @@ import EmailView from "./components/EmailView";
 import CrmView from "./components/CrmView";
 import AgentConsole from "./components/AgentConsole";
 import ExcelView from "./components/ExcelView";
+import LandingPage from "./components/landing/LandingPage";
 
 const API = "http://localhost:8000";
 
@@ -216,7 +217,7 @@ export default function App() {
   const [lastEmotion, setLastEmotion] = useState("neutral");
   const [alert, setAlert]             = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [activeView, setActiveView]   = useState("chat");
+  const [activeView, setActiveView]   = useState("landing");
   const [activeTicketId, setActiveTicketId] = useState(null);
   const [channelFilter, setChannelFilter] = useState("All Channels");
 
@@ -483,6 +484,15 @@ export default function App() {
 
   const intensityScore = getIntensity(lastEmotion);
 
+
+
+  if (activeView === "landing") {
+    return (
+      <div style={{ height: "100vh", overflow: "auto", background: "#0a0a0f" }}>
+        <LandingPage onStart={() => setActiveView("chat")} />
+      </div>
+    );
+  }
 
   return (
     <div className="app-shell">
