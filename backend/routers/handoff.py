@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 from database import (
     get_agents, get_agent, create_agent, update_agent_status,
-    create_handoff, get_handoffs, accept_handoff, resolve_handoff, transfer_handoff
+    create_handoff, get_handoffs, get_handoff, accept_handoff, resolve_handoff, transfer_handoff
 )
 from ai.crm_ai import auto_route_agent
 
@@ -101,6 +101,88 @@ def active():
 @router.get("/agent/{agent_id}")
 def agent_handoffs(agent_id: int):
     return get_handoffs(agent_id=agent_id)
+
+class AgentMessageRequest(BaseModel):
+    message: str
+
+class AddPhoneRequest(BaseModel):
+    phone: str
+
+@router.post("/agent-message/{handoff_id}")
+def agent_message(handoff_id: int, req: AgentMessageRequest):
+    from messaging_service import send_agent_message
+    
+    result = send_agent_message(handoff_id, req.message)
+    
+    if not result["success"]:
+        raise HTTPException(500, result.get("error", "Failed to send message"))
+        
+    return {"status": "success"}
+
+@router.post("/call-customer/{handoff_id}")
+def call_customer(handoff_id: int):
+    handoff = get_handoff(handoff_id)
+    if not handoff:
+        raise HTTPException(404, "Handoff not found")
+        
+    customer_id = handoff.get("customer_id")
+    if not customer_id:
+        raise HTTPException(400, {"error": "no_phone_number", "message": "No customer linked to this handoff."})
+        
+    import sqlite3
+    from database import DB_PATH
+    conn = sqlite3.connect(DB_PATH)
+    try:
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute("SELECT phone FROM customers WHERE id = ?", (customer_id,))
+        row = cursor.fetchone()
+    finally:
+        conn.close()
+        
+    if not row or not row["phone"]:
+        raise HTTPException(400, {"error": "no_phone_number", "message": "No phone number on file for this customer."})
+        
+    phone = row["phone"]
+    
+    # Twilio Call
+    import os
+    from twilio.rest import Client
+    
+    account_sid = os.getenv('TWILIO_ACCOUNT_SID')
+    auth_token = os.getenv('TWILIO_AUTH_TOKEN')
+    twilio_number = os.getenv('TWILIO_PHONE_NUMBER')
+    
+    if not account_sid or not auth_token:
+        # Mock call if twilio not configured for testing
+        print(f"MOCK CALL to {phone} (Twilio not configured)")
+        from database import log_call
+        call_id = log_call(handoff_id, customer_id, handoff["agent_id"], "mock_sid_12345", "completed")
+        return {"success": True, "call_id": call_id, "status": "mock_completed", "message": "Twilio not configured, mock call logged."}
+
+    client = Client(account_sid, auth_token)
+    try:
+        call = client.calls.create(
+            twiml='<Response><Say>Please hold while we connect you to an agent.</Say></Response>',
+            to=phone,
+            from_=twilio_number
+        )
+        
+        from database import log_call
+        call_id = log_call(handoff_id, customer_id, handoff["agent_id"], call.sid, call.status)
+        return {"success": True, "call_id": call_id, "status": call.status, "sid": call.sid}
+    except Exception as e:
+        raise HTTPException(500, f"Twilio call failed: {e}")
+
+@router.post("/add-phone/{handoff_id}")
+def add_phone(handoff_id: int, req: AddPhoneRequest):
+    handoff = get_handoff(handoff_id)
+    if not handoff or not handoff.get("customer_id"):
+        raise HTTPException(404, "Customer not found")
+        
+    from database import update_customer_phone
+    update_customer_phone(handoff["customer_id"], req.phone)
+    return {"success": True, "phone": req.phone}
 
 @router.post("/auto-route")
 def auto_route_api(req: AutoRouteRequest):

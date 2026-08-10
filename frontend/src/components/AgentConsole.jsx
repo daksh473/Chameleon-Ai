@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import './AgentConsole.css';
 import { 
   Users, List, MessageSquare, Clock, ShieldAlert,
-  Send, CheckCircle, ArrowRightCircle, Search, Headset, Mic, Mail
+  Send, CheckCircle, ArrowRightCircle, Search, Headset, Mic, Mail, Phone, PhoneCall
 } from 'lucide-react';
 
 const API = 'http://localhost:8000';
@@ -23,6 +23,9 @@ export default function AgentConsole() {
   const [error, setError] = useState(null);
   
   const [replyText, setReplyText] = useState('');
+  const [callStatus, setCallStatus] = useState(null);
+  const [phoneInput, setPhoneInput] = useState('');
+  const [showPhonePrompt, setShowPhonePrompt] = useState(false);
   const ws = useRef(null);
 
   // Initialize data
@@ -111,9 +114,83 @@ export default function AgentConsole() {
     }
   };
 
+  const [toast, setToast] = useState(null); // Added state for toast
+  
+  const showToast = (msg) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 5000);
+  };
+
+  const handleSendMessage = async () => {
+    if (!replyText.trim() || !activeConvo) return;
+    const msg = replyText;
+    setReplyText(''); 
+    
+    // Optimistically add to UI, we will remove if failed
+    const tempHistory = [...(activeConvo.conversation_history || []), {sender_type: 'agent', text: msg, name: 'Agent'}];
+    setActiveConvo({ ...activeConvo, conversation_history: tempHistory });
+    
+    try {
+      const res = await fetch(`${API}/handoff/agent-message/${activeConvo.id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: msg })
+      });
+      const data = await res.json();
+      if (!res.ok || data.success === false) {
+        throw new Error(data.error || 'Failed to send message');
+      }
+      fetchMyConvos();
+    } catch (e) {
+      showToast(`Message failed to send — customer did not receive it. Error: ${e.message}`);
+      // Revert optimistic UI update
+      const reverted = tempHistory.slice(0, -1);
+      setActiveConvo({ ...activeConvo, conversation_history: reverted });
+    }
+  };
+
+  const handleCallCustomer = async () => {
+    if (!activeConvo) return;
+    setCallStatus('Calling...');
+    try {
+      const res = await fetch(`${API}/handoff/call-customer/${activeConvo.id}`, { method: 'POST' });
+      const data = await res.json();
+      if (res.ok) {
+        setCallStatus(`Connected: ${data.status}`);
+        setTimeout(() => setCallStatus(null), 5000);
+      } else {
+        if (data.error === "no_phone_number") setShowPhonePrompt(true);
+        setCallStatus(data.message || 'Call failed');
+        setTimeout(() => setCallStatus(null), 3000);
+      }
+    } catch (e) {
+      setCallStatus('Error calling');
+      setTimeout(() => setCallStatus(null), 3000);
+    }
+  };
+
+  const handleAddPhone = async () => {
+    if (!activeConvo || !phoneInput) return;
+    const res = await fetch(`${API}/handoff/add-phone/${activeConvo.id}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: phoneInput })
+    });
+    if (res.ok) {
+      setShowPhonePrompt(false);
+      // Update local state so call button activates
+      setActiveConvo({ ...activeConvo, customer_phone: phoneInput });
+    }
+  };
+
   // UI Components
   const LiveQueue = () => (
     <div>
+      {toast && (
+        <div style={{ position: 'fixed', top: '20px', right: '20px', background: '#ef4444', color: 'white', padding: '12px 24px', borderRadius: '8px', zIndex: 9999, boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
+          {toast}
+        </div>
+      )}
       <div className="queue-stats">
         <div className="stat-card">
           <span>Pending Handoffs</span>
@@ -167,6 +244,11 @@ export default function AgentConsole() {
 
   const MyConversations = () => (
     <div className="split-view">
+      {toast && (
+        <div style={{ position: 'fixed', top: '20px', right: '20px', background: '#ef4444', color: 'white', padding: '12px 24px', borderRadius: '8px', zIndex: 9999, boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
+          {toast}
+        </div>
+      )}
       <div className="convo-list">
         {myConvos.length === 0 ? (
           <div style={{ padding: '20px', color: '#94a3b8' }}>No active conversations.</div>
@@ -204,17 +286,46 @@ export default function AgentConsole() {
                 )}
               </div>
               <div className="workspace-actions">
+                {callStatus && <span style={{ color: '#10b981', fontSize: '12px', marginRight: '8px' }}>{callStatus}</span>}
+                
+                {activeConvo.customer_phone ? (
+                  <button className="btn-call" onClick={handleCallCustomer} title="Call Customer" style={{ background: '#059669', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px', marginRight: '8px' }}>
+                    <PhoneCall size={16} /> Call
+                  </button>
+                ) : (
+                  <div style={{ display: 'inline-flex', alignItems: 'center', marginRight: '8px' }}>
+                    <button className="btn-call disabled" disabled title="No phone on file" style={{ background: '#334155', color: '#94a3b8', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'not-allowed', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <Phone size={16} /> Call
+                    </button>
+                    {!showPhonePrompt ? (
+                      <span onClick={() => setShowPhonePrompt(true)} style={{ color: '#3b82f6', fontSize: '11px', marginLeft: '4px', cursor: 'pointer' }}>+ Add Phone</span>
+                    ) : (
+                      <div style={{ display: 'inline-flex', marginLeft: '4px' }}>
+                        <input type="text" placeholder="+1234567890" value={phoneInput} onChange={e => setPhoneInput(e.target.value)} style={{ padding: '2px 4px', fontSize: '11px', width: '90px' }} />
+                        <button onClick={handleAddPhone} style={{ fontSize: '11px', padding: '2px 4px' }}>Save</button>
+                      </div>
+                    )}
+                  </div>
+                )}
+                
                 <button className="btn-transfer" title="Transfer"><ArrowRightCircle size={16} /> Transfer</button>
                 <button className="btn-resolve" onClick={handleResolve}><CheckCircle size={16} /> Resolve</button>
               </div>
             </div>
             
             <div className="workspace-chat">
-              {activeConvo.conversation_history.map((msg, idx) => (
-                <div key={idx} className={`chat-bubble ${msg.role === 'user' ? 'bubble-user' : 'bubble-agent'}`}>
-                  {msg.message}
+              {activeConvo.conversation_history.map((msg, idx) => {
+                const isUser = msg.role === 'user' || msg.sender_type === 'customer' || msg.sender_type === 'user';
+                const isAgent = msg.role === 'agent' || msg.sender_type === 'agent';
+                return (
+                <div key={idx} className={`chat-bubble ${isUser ? 'bubble-user' : (isAgent ? 'bubble-human-agent' : 'bubble-agent')}`}
+                  style={isAgent ? { background: '#2563eb', color: 'white', alignSelf: 'flex-end', borderBottomRightRadius: 0 } : (!isUser ? { background: '#1e293b', color: '#f8fafc', alignSelf: 'flex-start', borderBottomLeftRadius: 0 } : {})}
+                >
+                  {isAgent && <div style={{ fontSize: '10px', opacity: 0.8, marginBottom: '2px' }}>{msg.name || 'Agent'}</div>}
+                  {!isUser && !isAgent && <div style={{ fontSize: '10px', opacity: 0.8, marginBottom: '2px' }}>Bot</div>}
+                  {msg.text ?? msg.message ?? msg.content ?? ""}
                 </div>
-              ))}
+              )})}
             </div>
             
             <div className="workspace-input">
@@ -230,12 +341,11 @@ export default function AgentConsole() {
                   onChange={e => setReplyText(e.target.value)}
                   onKeyDown={e => {
                     if(e.key === 'Enter') {
-                      // Mock send
-                      setReplyText('');
+                      handleSendMessage();
                     }
                   }}
                 />
-                <button><Send size={18} /></button>
+                <button onClick={handleSendMessage}><Send size={18} /></button>
               </div>
             </div>
           </>

@@ -2,7 +2,8 @@ import sqlite3
 import json
 from datetime import datetime
 
-DB_PATH = "smartcare.db"
+import os
+DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "smartcare.db")
 
 def init_db():
     conn = sqlite3.connect(DB_PATH)
@@ -219,6 +220,21 @@ def init_db():
         cursor.execute("ALTER TABLE handoffs ADD COLUMN sender_name TEXT")
     except Exception:
         pass
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS calls (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            handoff_id INTEGER,
+            customer_id INTEGER,
+            agent_id INTEGER,
+            status TEXT DEFAULT 'initiated',
+            started_at TEXT,
+            ended_at TEXT,
+            duration INTEGER,
+            call_sid TEXT,
+            FOREIGN KEY (handoff_id) REFERENCES handoffs(id)
+        )
+    ''')
 
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS memory_store (
@@ -1182,6 +1198,45 @@ def create_agent(name, email, specialization="general", max_conversations=3):
     conn.close()
     return aid
 
+def save_conversation_message(handoff_id: int, sender_type: str, text: str, channel: str):
+    """
+    Appends a new message directly to the JSON conversation_history column of a handoff.
+    Uses the unified schema format.
+    """
+    import datetime, uuid, json
+    conn = sqlite3.connect(DB_PATH)
+    try:
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute("SELECT conversation_history FROM handoffs WHERE id = ?", (handoff_id,))
+        row = cursor.fetchone()
+        if not row:
+            return False
+            
+        try:
+            history = json.loads(row["conversation_history"]) if row["conversation_history"] else []
+        except:
+            history = []
+            
+        history.append({
+            "id": str(uuid.uuid4()),
+            "sender_type": sender_type,
+            "text": text,
+            "channel": channel,
+            "sentiment_score": None,
+            "emotion": None,
+            "timestamp": datetime.datetime.now().isoformat()
+        })
+        
+        cursor.execute(
+            "UPDATE handoffs SET conversation_history = ? WHERE id = ?",
+            (json.dumps(history), handoff_id)
+        )
+        conn.commit()
+        return True
+    finally:
+        conn.close()
+
 def update_agent_status(agent_id, status):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -1209,7 +1264,7 @@ def get_handoffs(status=None, agent_id=None):
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
-    query = 'SELECT h.*, c.name as customer_name, a.name as agent_name FROM handoffs h LEFT JOIN customers c ON h.customer_id = c.id LEFT JOIN agents a ON h.agent_id = a.id WHERE 1=1'
+    query = 'SELECT h.*, c.name as customer_name, c.phone as customer_phone, a.name as agent_name FROM handoffs h LEFT JOIN customers c ON h.customer_id = c.id LEFT JOIN agents a ON h.agent_id = a.id WHERE 1=1'
     params = []
     if status:
         query += ' AND h.status = ?'
@@ -1227,6 +1282,22 @@ def get_handoffs(status=None, agent_id=None):
         d['conversation_history'] = json.loads(d['conversation_history']) if d['conversation_history'] else []
         result.append(d)
     return result
+
+def get_handoff(handoff_id):
+    conn = sqlite3.connect(DB_PATH)
+    try:
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute('SELECT h.*, c.name as customer_name, c.phone as customer_phone, a.name as agent_name FROM handoffs h LEFT JOIN customers c ON h.customer_id = c.id LEFT JOIN agents a ON h.agent_id = a.id WHERE h.id = ?', (handoff_id,))
+        row = cursor.fetchone()
+        if not row:
+            return None
+        res = dict(row)
+        import json
+        res["conversation_history"] = json.loads(res["conversation_history"]) if res["conversation_history"] else []
+        return res
+    finally:
+        conn.close()
 
 def accept_handoff(handoff_id):
     from datetime import datetime

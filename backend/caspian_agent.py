@@ -119,15 +119,17 @@ def handle_message(message):
     _log_stage("REASON", routing_reason)
 
     # ── STAGE 3: Cross-Channel Memory ──
-    user_history = get_user_context_as_chat_history(user_id)
-    user_summary = get_user_summary(user_id)
-
-    _log_stage("MEMORY", f"Found {len(user_history)} prior interactions for user")
-    if user_history:
-        _log_stage("CONTEXT", user_summary.split("\n")[0])  # First line only
-
+    # Generate LLM response context (but handoff gets the raw rich history)
+    user_context = get_user_context_as_chat_history(user_id)
+    user_history = get_user_context(user_id) # The raw schema for the UI
+    
+    # ── STAGE 3: Memory persistence ──
     # Save the inbound message to memory
-    append_to_user_history(user_id, channel, text, "inbound")
+    append_to_user_history(
+        user_id, channel, text, "inbound", 
+        sentiment_score=sentiment_result['score'], 
+        emotion=sentiment_result['emotion']
+    )
 
     # ── STAGE 4: Generate Response (based on routing decision) ──
     reply_text = None
@@ -139,7 +141,7 @@ def handle_message(message):
             action=action,
             sentiment_result=sentiment_result,
             channel=channel,
-            user_history=user_history
+            user_history=user_context
         )
         _log_stage("REPLY", f"Adaptive bot reply generated ({len(reply_text)} chars)")
 
@@ -161,7 +163,7 @@ def handle_message(message):
                 sentiment_score=score,
                 emotion=emotion,
                 channel=f"caspian-{channel}",
-                sender_id=user_id,
+                sender_id=message.conversation_id,
                 sender_name=customer_name,
                 session_id=f"caspian-{channel}-{user_id}",
                 conversation_history=user_history
@@ -176,7 +178,7 @@ def handle_message(message):
             action="ESCALATE",
             sentiment_result=sentiment_result,
             channel=channel,
-            user_history=user_history
+            user_history=user_context
         )
         _log_stage("REPLY", f"Escalation acknowledgment generated ({len(reply_text)} chars)")
 
@@ -197,7 +199,7 @@ def handle_message(message):
             action="NORMAL",
             sentiment_result=sentiment_result,
             channel=channel,
-            user_history=user_history
+            user_history=user_context
         )
         _log_stage("REPLY", f"Holding reply generated ({len(reply_text)} chars)")
 
@@ -250,9 +252,9 @@ def handle_message(message):
 
 def start_caspian_listener():
     """Start the Caspian SDK listener — connects to email and telegram."""
-    print("\n" + "─" * 70)
+    print("\n" + "-" * 70)
     print("  🚀 CASPIAN INTELLIGENT COMMUNICATION LAYER")
     print("  Pipeline: Sentiment → Routing → Memory → Adaptive Reply → Trace")
     print("  Listening for messages on all connected channels...")
-    print("─" * 70 + "\n")
+    print("-" * 70 + "\n")
     client.listen()

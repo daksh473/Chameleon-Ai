@@ -62,29 +62,28 @@ def get_user_context_as_chat_history(user_id: str) -> list:
     raw_history = get_user_context(user_id)
     formatted = []
     for entry in raw_history[-20:]:  # Last 20 interactions for context window
-        role = "user" if entry.get("direction") == "inbound" else "assistant"
+        # Map unified schema to LLM schema
+        role = "user" if entry.get("sender_type") in ("customer", "user") else "assistant"
         channel_tag = f"[{entry.get('channel', 'unknown').upper()}] "
         formatted.append({
             "role": role,
-            "content": channel_tag + entry.get("message", "")
+            "content": channel_tag + entry.get("text", entry.get("message", ""))
         })
     return formatted
 
 
-def append_to_user_history(user_id: str, channel: str, message: str, direction: str):
+def append_to_user_history(user_id: str, channel: str, message: str, direction: str, sentiment_score: float = None, emotion: str = None):
     """
     Append a message to a user's unified cross-channel history.
-
-    Args:
-        user_id: Unified identifier.
-        channel: "email", "telegram", "dashboard", etc.
-        message: The message text.
-        direction: "inbound" (from customer) or "outbound" (our reply).
     """
+    import uuid
     entry = {
+        "id": str(uuid.uuid4()),
+        "sender_type": "customer" if direction == "inbound" else "bot",
+        "text": message,
         "channel": channel,
-        "message": message,
-        "direction": direction,
+        "sentiment_score": sentiment_score,
+        "emotion": emotion,
         "timestamp": datetime.now().isoformat()
     }
 
