@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { ArrowUp, CircleDot, AlertTriangle, CheckCircle2, Mic, MicOff, Volume2, VolumeX } from "lucide-react";
+import { Send, X, CircleDot, AlertTriangle, CheckCircle2, TrendingUp, TrendingDown, Database, Sparkles, Mic, MicOff, Volume2, VolumeX } from "lucide-react";
 
 const API = "http://localhost:8000";
 
@@ -235,9 +235,22 @@ export default function LiveChatView() {
               } else {
                 return (
                   <div key={i} className="livechat-msg-row fade-in">
-                    <div className="livechat-msg-bot">
-                      <div className="livechat-avatar bot"><CircleDot size={14} /></div>
-                      <div className="livechat-msg-text bot-text">{m.message}</div>
+                    <div className="livechat-msg-bot flex-col">
+                      <div className="flex items-start w-full">
+                        <div className="livechat-avatar bot"><CircleDot size={14} /></div>
+                        <div className="livechat-msg-text bot-text">{m.message}</div>
+                      </div>
+                      <div className="ml-10 mt-1 flex items-center text-[10px] uppercase font-bold tracking-wider">
+                        {m.source === "knowledge_base" ? (
+                          <span className="text-emerald-500 flex items-center gap-1 bg-emerald-500/10 px-2 py-1 rounded">
+                            <Database size={10} /> From Knowledge Base
+                          </span>
+                        ) : (
+                          <span className="text-indigo-400 flex items-center gap-1 bg-indigo-500/10 px-2 py-1 rounded">
+                            <Sparkles size={10} /> AI Generated
+                          </span>
+                        )}
+                      </div>
                     </div>
                     {m.action === "ESCALATE" && m.ticket_created && (
                       <div className="livechat-banner escalate">

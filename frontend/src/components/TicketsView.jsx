@@ -5,21 +5,28 @@ export default function TicketsView() {
   const [tickets, setTickets] = useState([]);
   const [stats, setStats] = useState({ total: 0, open: 0, resolved: 0, high_priority: 0 });
   const [filterLang, setFilterLang] = useState("all");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchData();
   }, []);
 
   const fetchData = async () => {
+    setLoading(true);
+    setError(null);
     try {
       const [tRes, sRes] = await Promise.all([
-        fetch("http://localhost:8000/tickets"),
-        fetch("http://localhost:8000/tickets/stats")
+        fetch("http://localhost:8000/tickets").then(r => r.ok ? r.json() : []),
+        fetch("http://localhost:8000/tickets/stats").then(r => r.ok ? r.json() : { total: 0, open: 0, resolved: 0, high_priority: 0 })
       ]);
-      setTickets(await tRes.json());
-      setStats(await sRes.json());
+      setTickets(tRes || []);
+      setStats(sRes || { total: 0, open: 0, resolved: 0, high_priority: 0 });
     } catch (err) {
       console.error("Error fetching tickets:", err);
+      setError("Failed to load Tickets data");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -37,6 +44,9 @@ export default function TicketsView() {
     if (p === "MEDIUM") return "text-yellow-400 bg-yellow-400/10 border-yellow-400/20";
     return "text-emerald-400 bg-emerald-400/10 border-emerald-400/20";
   };
+
+  if (loading) return <div className="w-full h-full p-6 bg-[#1a1b1f] text-gray-400">Loading Tickets...</div>;
+  if (error) return <div className="w-full h-full p-6 bg-[#1a1b1f] text-red-400">Error: {error}</div>;
 
   return (
     <div className="w-full h-full flex flex-col p-6 bg-[#1a1b1f] overflow-y-auto text-white">

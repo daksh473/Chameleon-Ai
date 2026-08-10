@@ -26,6 +26,7 @@ export default function EmailView() {
   const [selectedEmail, setSelectedEmail] = useState(null);
   const [customReply, setCustomReply] = useState("");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [checking, setChecking] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -33,18 +34,19 @@ export default function EmailView() {
   const [composeData, setComposeData] = useState({ to: "", subject: "", body: "" });
 
   const fetchData = async () => {
+    setLoading(true);
+    setError(null);
     try {
       const [emRes, stRes] = await Promise.all([
-        fetch(`${API}/email/inbox`),
-        fetch(`${API}/email/stats`)
+        fetch(`${API}/email/inbox`).then(r => r.ok ? r.json() : []),
+        fetch(`${API}/email/stats`).then(r => r.ok ? r.json() : null)
       ]);
-      const em = await emRes.json();
-      const st = await stRes.json();
-      setEmails(em);
-      setStats(st);
-      if (em.length > 0 && !selectedEmail) setSelectedEmail(em[0]);
+      setEmails(emRes || []);
+      setStats(stRes);
+      if (emRes && emRes.length > 0 && !selectedEmail) setSelectedEmail(emRes[0]);
     } catch (e) {
       console.error(e);
+      setError("Failed to load Email data");
     } finally {
       setLoading(false);
     }
@@ -142,7 +144,8 @@ export default function EmailView() {
     }
   };
 
-  if (loading) return <div className="email-loading">Loading Emails...</div>;
+  if (loading) return <div className="email-loading p-8 text-gray-400">Loading Emails...</div>;
+  if (error) return <div className="p-8 text-red-400">Error: {error}</div>;
 
   return (
     <div className="email-view">

@@ -1,12 +1,12 @@
-# SentimentAI — Product Features & Capabilities
+# Chameleon AI — Product Features & Capabilities
 
-### A Complete Overview of What SentimentAI Offers
+### A Complete Overview of What Chameleon AI Offers
 
 ---
 
 ## 1. Introduction
 
-SentimentAI is an end-to-end, AI-powered customer experience platform built to solve one of the biggest blind spots in modern customer support: businesses cannot see, in real time, how their customers actually feel. Support teams read words — SentimentAI reads emotion.
+Chameleon AI is an end-to-end, AI-powered customer experience platform built to solve one of the biggest blind spots in modern customer support: businesses cannot see, in real time, how their customers actually feel. Support teams read words — Chameleon AI reads emotion.
 
 Every message a customer sends, whether typed, spoken, or emailed, is analyzed instantly. The system understands not just *what* the customer said, but *how* they feel and *what should happen next* — and it acts on that understanding automatically, without waiting for a human to notice.
 
@@ -127,7 +127,7 @@ Full two-way spreadsheet support:
 - Downloadable blank templates for customers, tickets, and deals to standardize data entry
 - Import history log so any import can be reviewed or undone
 
-**Business value:** SentimentAI fits into existing business workflows instead of replacing them — teams that rely on spreadsheets can bring their data in and take insights back out effortlessly.
+**Business value:** Chameleon AI fits into existing business workflows instead of replacing them — teams that rely on spreadsheets can bring their data in and take insights back out effortlessly.
 
 ---
 
@@ -152,7 +152,7 @@ Beyond the interface, the AI itself can detect and respond in multiple Indian la
 
 ---
 
-## 8. Summary Table — What SentimentAI Provides
+## 8. Summary Table — What Chameleon AI Provides
 
 | Category | Capability |
 |---|---|
@@ -178,4 +178,4 @@ Beyond the interface, the AI itself can detect and respond in multiple Indian la
 
 ---
 
-**SentimentAI** — Understand every customer. Act before they leave.
+**Chameleon AI** — Understand every customer. Act before they leave.

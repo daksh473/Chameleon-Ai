@@ -102,6 +102,7 @@ export default function AnalyticsView() {
   const [voiceStats, setVoiceStats] = useState(null);
   const [languageStats, setLanguageStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(null);
 
@@ -135,6 +136,7 @@ export default function AnalyticsView() {
       setLastRefresh(new Date());
     } catch (err) {
       console.error("Analytics fetch error:", err);
+      setError("Failed to load analytics data");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -177,6 +179,14 @@ export default function AnalyticsView() {
         </div>
         <Skeleton h={260} />
         <Skeleton h={220} />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="analytics-view p-8 flex items-center justify-center text-red-400">
+        Error: {error}
       </div>
     );
   }
@@ -232,8 +242,8 @@ export default function AnalyticsView() {
             <h3 className="av-chart-title">Usage by Language</h3>
             <ResponsiveContainer width="100%" height={260}>
               <PieChart>
-                <Pie data={languageStats} dataKey="count" nameKey="language_name" cx="50%" cy="50%" outerRadius={80} paddingAngle={5}>
-                  {languageStats.map((entry, index) => {
+                <Pie data={languageStats || []} dataKey="count" nameKey="language_name" cx="50%" cy="50%" outerRadius={80} paddingAngle={5}>
+                  {(Array.isArray(languageStats) ? languageStats : []).map((entry, index) => {
                     const colors = { hi: "orange", bn: "green", ta: "red", te: "blue", mr: "purple", gu: "yellow", pa: "indigo", kn: "teal", ml: "pink", en: "gray" };
                     return <Cell key={`cell-${index}`} fill={colors[entry.language] || "#8884d8"} />;
                   })}
@@ -252,7 +262,7 @@ export default function AnalyticsView() {
                 <YAxis domain={[0, 1]} tick={{ fill: "#666", fontSize: 11 }} />
                 <Tooltip content={<DarkTooltip />} cursor={{ fill: "#2a2a2a" }} />
                 <Bar dataKey="avg_sentiment" name="Avg Sentiment" radius={[4, 4, 0, 0]}>
-                  {languageStats.map((entry, index) => {
+                  {(Array.isArray(languageStats) ? languageStats : []).map((entry, index) => {
                     const colors = { hi: "orange", bn: "green", ta: "red", te: "blue", mr: "purple", gu: "yellow", pa: "indigo", kn: "teal", ml: "pink", en: "gray" };
                     return <Cell key={`cell-${index}`} fill={colors[entry.language] || "#8884d8"} />;
                   })}
@@ -297,7 +307,7 @@ export default function AnalyticsView() {
                 paddingAngle={3} animationDuration={1200}
                 label={({ emotion, percentage }) => `${emotion} ${percentage}%`}
               >
-                {(emotions || []).map((entry, i) => (
+                {(Array.isArray(emotions) ? emotions : []).map((entry, i) => (
                   <Cell key={i} fill={EMOTION_COLORS[entry.emotion] || "#6b7280"} />
                 ))}
               </Pie>
@@ -319,7 +329,7 @@ export default function AnalyticsView() {
               <YAxis tick={{ fill: "#666", fontSize: 11 }} />
               <Tooltip content={<DarkTooltip />} />
               <Bar dataKey="value" radius={[6, 6, 0, 0]} animationDuration={1000} name="Count">
-                {actionData.map((entry, i) => (
+                {(Array.isArray(actionData) ? actionData : []).map((entry, i) => (
                   <Cell key={i} fill={ACTION_COLORS[entry.name] || "#6b7280"} />
                 ))}
               </Bar>
@@ -374,7 +384,7 @@ export default function AnalyticsView() {
           <h3 className="av-health-title">Customer Health Score</h3>
           <p className="av-health-sub">AI-generated insights based on sentiment, resolution, and escalation data</p>
           <ul className="av-health-insights">
-            {(health?.key_insights || []).map((ins, i) => (
+            {(Array.isArray(health?.key_insights) ? health.key_insights : []).map((ins, i) => (
               <li key={i}>{ins}</li>
             ))}
           </ul>

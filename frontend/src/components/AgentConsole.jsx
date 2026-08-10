@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import './AgentConsole.css';
 import { 
   Users, List, MessageSquare, Clock, ShieldAlert,
-  Send, CheckCircle, ArrowRightCircle, Search, Headset
+  Send, CheckCircle, ArrowRightCircle, Search, Headset, Mic, Mail
 } from 'lucide-react';
 
 const API = 'http://localhost:8000';
@@ -19,14 +19,26 @@ export default function AgentConsole() {
   const [activeConvo, setActiveConvo] = useState(null);
   const [history, setHistory] = useState([]);
   
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
   const [replyText, setReplyText] = useState('');
   const ws = useRef(null);
 
   // Initialize data
   useEffect(() => {
-    fetchAgents();
-    fetchQueue();
-    fetchHistory();
+    Promise.all([
+      fetch(`${API}/handoff/agents`).then(r => r.ok ? r.json() : []),
+      fetch(`${API}/handoff/queue`).then(r => r.ok ? r.json() : [])
+    ]).then(([agentsData, queueData]) => {
+      setAgents(agentsData || []);
+      setQueue(queueData || []);
+      setLoading(false);
+    }).catch(err => {
+      console.error(err);
+      setError("Failed to load Agent Console data");
+      setLoading(false);
+    });
     
     // Connect WebSocket for live notifications
     ws.current = new WebSocket(WS_URL);
@@ -58,32 +70,24 @@ export default function AgentConsole() {
     }
   }, [currentAgentId]);
 
-  const fetchAgents = async () => {
-    const res = await fetch(`${API}/handoff/agents`);
-    if (res.ok) {
-      setAgents(await res.json());
-    }
-  };
-
   const fetchQueue = async () => {
-    const res = await fetch(`${API}/handoff/queue`);
-    if (res.ok) {
-      setQueue(await res.json());
-    }
+    try {
+      const res = await fetch(`${API}/handoff/queue`);
+      if (res.ok) setQueue(await res.json());
+    } catch(e) { console.error(e); }
   };
 
   const fetchMyConvos = async () => {
-    const res = await fetch(`${API}/handoff/active`);
-    if (res.ok) {
-      const allActive = await res.json();
-      setMyConvos(allActive.filter(h => h.agent_id === parseInt(currentAgentId)));
-    }
+    try {
+      const res = await fetch(`${API}/handoff/active`);
+      if (res.ok) {
+        const allActive = await res.json();
+        setMyConvos((allActive || []).filter(h => h.agent_id === parseInt(currentAgentId)));
+      }
+    } catch(e) { console.error(e); }
   };
 
-  const fetchHistory = async () => {
-    // A real implementation would fetch status=resolved or all, but our endpoint handles all for a specific agent if passed.
-    // For demo, we just fetch agent's history or all active/resolved. Let's make an endpoint call if exists.
-  };
+  const fetchHistory = async () => {};
 
   const handleAccept = async (handoffId) => {
     const res = await fetch(`${API}/handoff/accept/${handoffId}`, { method: 'POST' });
@@ -128,16 +132,27 @@ export default function AgentConsole() {
       <div className="queue-grid">
         {queue.length === 0 ? (
           <div style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>Queue is empty. Great job!</div>
-        ) : queue.map(item => (
+        ) : queue.map(item => {
+          
+          let ChannelIcon = MessageSquare;
+          let channelLabel = "Live Chat";
+          if (item.channel === "voice") { ChannelIcon = Mic; channelLabel = "Voice"; }
+          else if (item.channel === "email" || item.channel === "caspian-email") { ChannelIcon = Mail; channelLabel = "Email"; }
+          else if (item.channel === "caspian-telegram" || item.channel === "telegram") { ChannelIcon = Send; channelLabel = "Telegram"; }
+
+          return (
           <div className="handoff-card" key={item.id}>
             <div className="handoff-info">
-              <div className="handoff-header">
+              <div className="handoff-header" style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                 <span className={`priority-badge priority-${item.priority}`}>{item.priority}</span>
-                <span className="handoff-customer">{item.customer_name || item.session_id}</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', color: '#e2e8f0' }}>
+                  <ChannelIcon size={12} /> {channelLabel}
+                </span>
+                <span className="handoff-customer" style={{ fontWeight: 'bold' }}>{item.sender_name || item.customer_name || item.sender_id || item.session_id}</span>
               </div>
               <div className="handoff-preview">{item.reason}</div>
               <div className="handoff-meta">
-                <span>Sentiment: {item.sentiment_score?.toFixed(2) || 'N/A'}</span>
+                <span>Sentiment: {item.sentiment_score?.toFixed(2) || 'N/A'} {item.emotion ? `(${item.emotion})` : ''}</span>
                 <span>Wait: Just now</span>
               </div>
             </div>
@@ -145,7 +160,7 @@ export default function AgentConsole() {
               <button className="btn-accept" onClick={() => handleAccept(item.id)}>Accept</button>
             </div>
           </div>
-        ))}
+        )})}
       </div>
     </div>
   );
@@ -255,6 +270,9 @@ export default function AgentConsole() {
       ))}
     </div>
   );
+
+  if (loading) return <div className="p-8 text-gray-400">Loading Agent Console...</div>;
+  if (error) return <div className="p-8 text-red-400">{error}</div>;
 
   return (
     <div className="agent-console-container">

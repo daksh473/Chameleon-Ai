@@ -40,7 +40,7 @@ export default function SettingsView({ lang, setLang }) {
         {/* Header Zone */}
         <header className="mb-10 border-b border-[#2a2b2f] pb-6">
           <h1 className="text-3xl font-serif font-bold text-white tracking-wide">
-            Sentiment AI Settings
+            Chameleon AI Settings
           </h1>
           <p className="text-gray-400 mt-2 text-sm">Manage your workspace preferences and data retention.</p>
         </header>

@@ -1,0 +1,320 @@
+{
+  "7181791365": {
+    "first_seen": "2026-08-10T14:45:45.051304",
+    "channels_used": [
+      "telegram"
+    ],
+    "history": [
+      {
+        "channel": "telegram",
+        "message": "I am extremely angry, you charged me twice for the delivery!!! Cancel it right now!!!",
+        "direction": "inbound",
+        "timestamp": "2026-08-10T14:45:45.051285"
+      },
+      {
+        "channel": "telegram",
+        "message": "I am extremely angry, you charged me twice for the delivery!!! Cancel it right now!!!",
+        "direction": "inbound",
+        "timestamp": "2026-08-10T14:46:15.574963"
+      },
+      {
+        "channel": "telegram",
+        "message": "😞 So sorry to hear that you were charged twice, that's really frustrating! A human agent will help you with a refund and cancellation ASAP, and a ticket has been auto-created to expedite the process 🚀",
+        "direction": "outbound",
+        "timestamp": "2026-08-10T14:46:19.728356"
+      },
+      {
+        "channel": "telegram",
+        "message": "Hii",
+        "direction": "inbound",
+        "timestamp": "2026-08-10T14:48:38.192974"
+      },
+      {
+        "channel": "telegram",
+        "message": "What's up? Need help with that double charge issue? 🤔",
+        "direction": "outbound",
+        "timestamp": "2026-08-10T14:48:39.298775"
+      },
+      {
+        "channel": "telegram",
+        "message": "Where is my order",
+        "direction": "inbound",
+        "timestamp": "2026-08-10T14:49:06.970808"
+      },
+      {
+        "channel": "telegram",
+        "message": "[TELEGRAM] Let me check on that for you 📦. Can you please share your order number so I can look into the status?",
+        "direction": "outbound",
+        "timestamp": "2026-08-10T14:49:07.899969"
+      },
+      {
+        "channel": "telegram",
+        "message": "Hii",
+        "direction": "inbound",
+        "timestamp": "2026-08-10T15:07:15.397551"
+      },
+      {
+        "channel": "telegram",
+        "message": "[TELEGRAM] Hey, how can I help you today? 🤔",
+        "direction": "outbound",
+        "timestamp": "2026-08-10T15:07:16.863523"
+      },
+      {
+        "channel": "telegram",
+        "message": "Where is my parcel",
+        "direction": "inbound",
+        "timestamp": "2026-08-10T15:07:40.639283"
+      },
+      {
+        "channel": "telegram",
+        "message": "[TELEGRAM] I'll check on that for you 📦. Can you please share your order number so I can look into the status?",
+        "direction": "outbound",
+        "timestamp": "2026-08-10T15:07:41.739851"
+      },
+      {
+        "channel": "telegram",
+        "message": "Mc dimaag mtt khraab kr",
+        "direction": "inbound",
+        "timestamp": "2026-08-10T15:08:05.413428"
+      },
+      {
+        "channel": "telegram",
+        "message": "[TELEGRAM] 😞 Arre, mujhe khed hai, aapko pareshaan karne ke liye! Aapka issue jaldi hal karne ke liye ek human agent aapki madad karenge, aur aapka ticket auto-create ho gaya hai 🚀",
+        "direction": "outbound",
+        "timestamp": "2026-08-10T15:08:07.340959"
+      },
+      {
+        "channel": "telegram",
+        "message": "Who is nuzail",
+        "direction": "inbound",
+        "timestamp": "2026-08-10T15:11:56.445477"
+      },
+      {
+        "channel": "telegram",
+        "message": "daksh roommate\n",
+        "direction": "outbound",
+        "timestamp": "2026-08-10T15:11:56.992837"
+      }
+    ],
+    "last_seen": "2026-08-10T15:11:56.993602"
+  },
+  "Nr_111112": {
+    "first_seen": "2026-08-10T14:59:36.559133",
+    "channels_used": [
+      "telegram"
+    ],
+    "history": [
+      {
+        "channel": "telegram",
+        "message": "/start",
+        "direction": "inbound",
+        "timestamp": "2026-08-10T14:59:36.558699"
+      },
+      {
+        "channel": "telegram",
+        "message": "How can I help you today? 🤔",
+        "direction": "outbound",
+        "timestamp": "2026-08-10T14:59:37.728604"
+      },
+      {
+        "channel": "telegram",
+        "message": "What do you do",
+        "direction": "inbound",
+        "timestamp": "2026-08-10T14:59:49.873238"
+      },
+      {
+        "channel": "telegram",
+        "message": "I'm a customer service bot, here to answer your questions and help with any issues you might have 😊",
+        "direction": "outbound",
+        "timestamp": "2026-08-10T14:59:50.920091"
+      },
+      {
+        "channel": "telegram",
+        "message": "I have stomach pain",
+        "direction": "inbound",
+        "timestamp": "2026-08-10T15:00:08.150723"
+      },
+      {
+        "channel": "telegram",
+        "message": "Sorry to hear that you're experiencing stomach pain 😞, I can see that you're concerned and I'm here to help, a human agent will assist you shortly and a ticket has been auto-created to look into this further.",
+        "direction": "outbound",
+        "timestamp": "2026-08-10T15:00:10.397805"
+      },
+      {
+        "channel": "telegram",
+        "message": "Now it's ok",
+        "direction": "inbound",
+        "timestamp": "2026-08-10T15:00:32.795421"
+      },
+      {
+        "channel": "telegram",
+        "message": "[TELEGRAM] Glad to hear that you're feeling better now 😊, as a thank you for chatting with us, we'd like to offer you a 10% discount on your next purchase! 🎁",
+        "direction": "outbound",
+        "timestamp": "2026-08-10T15:00:33.993656"
+      }
+    ],
+    "last_seen": "2026-08-10T15:00:33.994361"
+  },
+  "t_8179234": {
+    "first_seen": "2026-08-10T15:01:12.109893",
+    "channels_used": [
+      "telegram"
+    ],
+    "history": [
+      {
+        "channel": "telegram",
+        "message": "I want to know if you offer student discounts on Telegram.",
+        "direction": "inbound",
+        "timestamp": "2026-08-10T15:01:12.109690"
+      },
+      {
+        "channel": "telegram",
+        "message": "😊 We do offer a 10% student discount, and as a valued customer, I can upgrade you to a 15% discount on your next purchase! 🎉",
+        "direction": "outbound",
+        "timestamp": "2026-08-10T15:01:13.371330"
+      }
+    ],
+    "last_seen": "2026-08-10T15:01:13.371560"
+  },
+  "8162959383": {
+    "first_seen": "2026-08-10T15:24:26.450622",
+    "channels_used": [
+      "telegram"
+    ],
+    "history": [
+      {
+        "channel": "telegram",
+        "message": "/start",
+        "direction": "inbound",
+        "timestamp": "2026-08-10T15:24:26.450304"
+      },
+      {
+        "channel": "telegram",
+        "message": "How can I help you today? 🤔",
+        "direction": "outbound",
+        "timestamp": "2026-08-10T15:24:28.922738"
+      },
+      {
+        "channel": "telegram",
+        "message": "Who is nuzail",
+        "direction": "inbound",
+        "timestamp": "2026-08-10T15:24:31.993628"
+      },
+      {
+        "channel": "telegram",
+        "message": "daksh roommate\n",
+        "direction": "outbound",
+        "timestamp": "2026-08-10T15:24:32.406170"
+      },
+      {
+        "channel": "telegram",
+        "message": "Who is ankush",
+        "direction": "inbound",
+        "timestamp": "2026-08-10T15:24:46.457050"
+      },
+      {
+        "channel": "telegram",
+        "message": "[TELEGRAM] No info about Ankush, can you provide more context? 🤔",
+        "direction": "outbound",
+        "timestamp": "2026-08-10T15:24:47.899277"
+      },
+      {
+        "channel": "telegram",
+        "message": "Fuck off daksh",
+        "direction": "inbound",
+        "timestamp": "2026-08-10T15:25:21.411880"
+      },
+      {
+        "channel": "telegram",
+        "message": "bcoz his roommate is daksh",
+        "direction": "outbound",
+        "timestamp": "2026-08-10T15:25:22.115756"
+      },
+      {
+        "channel": "telegram",
+        "message": "Will daksh suck my dick?",
+        "direction": "inbound",
+        "timestamp": "2026-08-10T15:25:58.569473"
+      },
+      {
+        "channel": "telegram",
+        "message": "[TELEGRAM] Sorry you're upset, I acknowledge your frustration and a human agent will help you shortly, a ticket has been auto-created 🤖",
+        "direction": "outbound",
+        "timestamp": "2026-08-10T15:26:03.846760"
+      },
+      {
+        "channel": "telegram",
+        "message": "Thanks",
+        "direction": "inbound",
+        "timestamp": "2026-08-10T15:26:18.057940"
+      },
+      {
+        "channel": "telegram",
+        "message": "Aw, you're welcome! 😊 Thanks for being an amazing customer, as a token of appreciation, we'd like to offer you a special 10% discount on your next purchase! 💸",
+        "direction": "outbound",
+        "timestamp": "2026-08-10T15:26:20.175325"
+      },
+      {
+        "channel": "telegram",
+        "message": "Fuck off daksh",
+        "direction": "inbound",
+        "timestamp": "2026-08-10T15:36:34.047133"
+      },
+      {
+        "channel": "telegram",
+        "message": "[TELEGRAM] Sorry you're still upset, a human agent will help you right away, and we've already created a ticket to resolve your issue ASAP 🤖",
+        "direction": "outbound",
+        "timestamp": "2026-08-10T15:36:36.139454"
+      }
+    ],
+    "last_seen": "2026-08-10T15:36:36.140852"
+  },
+  "t_9999": {
+    "first_seen": "2026-08-10T15:34:24.109699",
+    "channels_used": [
+      "telegram"
+    ],
+    "history": [
+      {
+        "channel": "telegram",
+        "message": "I am so incredibly angry and frustrated with my broken order!!!",
+        "direction": "inbound",
+        "timestamp": "2026-08-10T15:34:24.109292"
+      },
+      {
+        "channel": "telegram",
+        "message": "I am so incredibly angry and frustrated with my broken order!!!",
+        "direction": "inbound",
+        "timestamp": "2026-08-10T15:35:25.672640"
+      },
+      {
+        "channel": "telegram",
+        "message": "So sorry to hear that your order is broken 😞! A human agent will help you with this ASAP, and we've already created a ticket for you to ensure it gets resolved quickly.",
+        "direction": "outbound",
+        "timestamp": "2026-08-10T15:35:30.907885"
+      }
+    ],
+    "last_seen": "2026-08-10T15:35:30.909040"
+  },
+  "daksh@angry.com": {
+    "first_seen": "2026-08-10T15:35:31.373608",
+    "channels_used": [
+      "email"
+    ],
+    "history": [
+      {
+        "channel": "email",
+        "message": "This is absolutely unacceptable. I demand a refund right now. You guys are terrible.",
+        "direction": "inbound",
+        "timestamp": "2026-08-10T15:35:31.373222"
+      },
+      {
+        "channel": "email",
+        "message": "Dear valued customer,\n\nI sincerely apologize for the frustration and inconvenience you are experiencing, and I acknowledge that the issue you are facing is unacceptable. A human agent will be assisting you shortly to resolve your refund request, and a ticket has been auto-created to expedite the process.\n\nSincerely,\nCustomer Service Team",
+        "direction": "outbound",
+        "timestamp": "2026-08-10T15:35:32.790355"
+      }
+    ],
+    "last_seen": "2026-08-10T15:35:32.790624"
+  }
+}

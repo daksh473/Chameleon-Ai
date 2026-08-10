@@ -13,17 +13,28 @@ export default function KnowledgeBaseView() {
   const [newA, setNewA] = useState("");
   const [newCat, setNewCat] = useState("general");
   const [showForm, setShowForm] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchFaqs();
   }, []);
 
   const fetchFaqs = async () => {
+    setLoading(true);
+    setError(null);
     try {
       const res = await fetch("http://localhost:8000/knowledge");
-      setFaqs(await res.json());
+      if (res.ok) {
+        setFaqs(await res.json());
+      } else {
+        throw new Error("Failed to fetch FAQs");
+      }
     } catch (err) {
       console.error("Error fetching FAQs:", err);
+      setError("Failed to load Knowledge Base");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -62,6 +73,9 @@ export default function KnowledgeBaseView() {
       console.error("Error adding FAQ:", err);
     }
   };
+
+  if (loading) return <div className="w-full h-full p-6 bg-[#1a1b1f] text-gray-400">Loading Knowledge Base...</div>;
+  if (error) return <div className="w-full h-full p-6 bg-[#1a1b1f] text-red-400">Error: {error}</div>;
 
   return (
     <div className="w-full h-full flex flex-col p-6 bg-[#1a1b1f] overflow-y-auto text-white">
@@ -181,7 +195,7 @@ export default function KnowledgeBaseView() {
           </select>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {faqs.filter(f => filterLang === "all" || f.language === filterLang).map(faq => (
+          {(Array.isArray(faqs) ? faqs : []).filter(f => filterLang === "all" || f.language === filterLang).map(faq => (
             <div key={faq.id} className="bg-[#232323] border border-gray-800 rounded-xl p-4 flex flex-col hover:border-gray-600 transition-colors relative overflow-hidden group">
               <div className="text-[10px] uppercase font-bold text-gray-500 mb-2 flex justify-between">
                 <span>{faq.category}</span>

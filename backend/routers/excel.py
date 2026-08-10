@@ -60,7 +60,7 @@ def _add_title_row(ws, title, num_cols):
     """Insert a branded title row at the top and shift data down."""
     ws.insert_rows(1, 2)
     ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=num_cols)
-    title_cell = ws.cell(row=1, column=1, value=f"SentimentAI Export — {title}")
+    title_cell = ws.cell(row=1, column=1, value=f"Chameleon AI Export — {title}")
     title_cell.font = TITLE_FONT
     title_cell.fill = TITLE_FILL
     title_cell.alignment = Alignment(horizontal="center", vertical="center")
@@ -393,7 +393,7 @@ def export_customers():
     _apply_borders(ws)
     ws.freeze_panes = "A4"
 
-    return _stream_workbook(wb, "sentimentai_customers.xlsx")
+    return _stream_workbook(wb, "chameleonai_customers.xlsx")
 
 
 @router.get("/export/conversations")
@@ -440,7 +440,7 @@ def export_conversations():
     _apply_borders(ws)
     ws.freeze_panes = "A4"
 
-    return _stream_workbook(wb, "sentimentai_conversations.xlsx")
+    return _stream_workbook(wb, "chameleonai_conversations.xlsx")
 
 
 @router.get("/export/tickets")
@@ -492,7 +492,7 @@ def export_tickets():
     _apply_borders(ws)
     ws.freeze_panes = "A4"
 
-    return _stream_workbook(wb, "sentimentai_tickets.xlsx")
+    return _stream_workbook(wb, "chameleonai_tickets.xlsx")
 
 
 @router.get("/export/analytics")
@@ -565,7 +565,7 @@ def export_analytics():
     _auto_fit_columns(ws5)
     _apply_borders(ws5)
 
-    return _stream_workbook(wb, "sentimentai_analytics.xlsx")
+    return _stream_workbook(wb, "chameleonai_analytics.xlsx")
 
 
 @router.get("/export/full-report")
@@ -678,7 +678,7 @@ def export_full_report():
     _auto_fit_columns(ws_analytics)
     _apply_borders(ws_analytics)
 
-    return _stream_workbook(wb, "sentimentai_full_report.xlsx")
+    return _stream_workbook(wb, "chameleonai_full_report.xlsx")
 
 
 # ──────────────────────────────────────────────
@@ -843,7 +843,7 @@ def download_template(template_type: str):
     _apply_borders(ws)
     ws.freeze_panes = "A2"
 
-    return _stream_workbook(wb, f"sentimentai_template_{template_type}.xlsx")
+    return _stream_workbook(wb, f"chameleonai_template_{template_type}.xlsx")
 
 
 # ──────────────────────────────────────────────

@@ -4,7 +4,7 @@ from groq import Groq
 
 # Same initialization as other AI files
 groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
-MODEL_NAME = "mixtral-8x7b-32768"
+MODEL_NAME = "llama-3.3-70b-versatile"
 
 def calculate_risk_score(customer_data, timeline):
     """

@@ -121,10 +121,12 @@ async def full_voice_pipeline(file: UploadFile = File(...), session_id: str = No
         sid = session_id or f"voice-{uuid.uuid4().hex[:8]}"
         customer_id = extract_customer_identifier(transcript, sid)
         memory_context, memory_count = build_memory_context(customer_id)
-        reply = generate_reply(transcript, action, memory_context=memory_context)
+        reply_data = generate_reply(transcript, action, memory_context=memory_context)
+        reply = reply_data["answer"]
+        reply_source = reply_data["source"]
 
-        save_conversation_message(sid, "user", transcript, result["score"], result["emotion"], action)
-        save_conversation_message(sid, "assistant", reply, result["score"], result["emotion"], action)
+        save_conversation_message(session_id, "user", transcript, result["score"], result["emotion"], action, channel="voice")
+        save_conversation_message(session_id, "agent", reply, result["score"], result["emotion"], action, channel="voice", source=reply_source)
         save_voice_metadata(sid, language, confidence)
 
         ticket_id = None
@@ -134,6 +136,19 @@ async def full_voice_pipeline(file: UploadFile = File(...), session_id: str = No
                 result["score"], result["emotion"], audio_duration
             )
             ticket_id = ticket["id"] if ticket else None
+            
+            try:
+                from handoff_service import trigger_handoff
+                trigger_handoff(
+                    customer_message=transcript,
+                    sentiment_score=result["score"],
+                    emotion=result["emotion"],
+                    channel="voice",
+                    session_id=session_id,
+                    sender_id=customer_id
+                )
+            except Exception as e:
+                print(f"Handoff error in voice: {e}")
 
         extract_and_store_memories(sid, customer_id, transcript, reply, result["score"])
 

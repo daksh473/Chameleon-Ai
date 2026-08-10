@@ -280,7 +280,7 @@ def _default_upsell_offer(customer: dict, avg_sent: float) -> str:
 
 def _groq_enrich_upsell(opportunities: list) -> list:
     prompt = f"""For these upsell-ready customers, suggest personalized best_offer (short, specific).
-Customers: {json.dumps([{{'name': o['name'], 'company': o['company'], 'upsell_probability': o['upsell_probability']}} for o in opportunities])}
+Customers: {json.dumps([{'name': o['name'], 'company': o['company'], 'upsell_probability': o['upsell_probability']} for o in opportunities])}
 
 Return JSON array: [{{"name": "...", "best_offer": "..."}}]"""
 

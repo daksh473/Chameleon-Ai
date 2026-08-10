@@ -1,8 +1,8 @@
-# SentimentAI — Architecture Documentation
+# Chameleon AI — Architecture Documentation
 
 ## System Overview
 
-SentimentAI is a real-time customer emotion intelligence platform. It analyzes incoming customer messages, detects sentiment, generates context-aware replies, and triggers automated actions — all within milliseconds via WebSocket.
+Chameleon AI is a real-time customer emotion intelligence platform. It analyzes incoming customer messages, detects sentiment, generates context-aware replies, and triggers automated actions — all within milliseconds via WebSocket.
 
 ---
 

@@ -91,7 +91,7 @@ export default function LandingPage({ onStart }) {
         {/* Logo */}
         <div className="flex items-center gap-2 cursor-pointer">
           <Waves className="w-6 h-6 text-emerald-400" />
-          <span className="text-lg font-bold tracking-tight text-white">SentimentAI</span>
+          <span className="text-lg font-bold tracking-tight text-white">Chameleon AI</span>
         </div>
 
         {/* Desktop Links */}
@@ -177,7 +177,7 @@ export default function LandingPage({ onStart }) {
             {/* Header */}
             <div className="bg-emerald-900/20 border-b border-white/5 px-4 py-3 flex items-center justify-between shrink-0">
               <TrafficLights />
-              <div className="text-[11px] font-semibold text-emerald-100/70 tracking-wide">Sentiment AI | Live Chat</div>
+              <div className="text-[11px] font-semibold text-emerald-100/70 tracking-wide">Chameleon AI | Live Chat</div>
               <div className="w-10"></div>
             </div>
 
@@ -208,7 +208,7 @@ export default function LandingPage({ onStart }) {
                       </div>
                     </div>
                   </div>
-                  <h3 className="text-xl font-medium text-white mb-2">Welcome to Sentiment AI</h3>
+                  <h3 className="text-xl font-medium text-white mb-2">Welcome to Chameleon AI</h3>
                   <p className="text-[11px] text-gray-400 max-w-[200px] leading-relaxed">
                     Analyze sentiment, auto-escalate, and resolve cases intelligently.
                   </p>

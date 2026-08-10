@@ -83,6 +83,20 @@ def check_inbox(req: InboxCheckRequest):
                     if action == "ESCALATE":
                         ticket_id = create_ticket(sender, f"Email: {subject}", result["score"])
                         
+                        try:
+                            from handoff_service import trigger_handoff
+                            trigger_handoff(
+                                customer_message=body,
+                                sentiment_score=result["score"],
+                                emotion=result["emotion"],
+                                channel="email",
+                                session_id=f"email-{message_id}",
+                                sender_id=sender,
+                                sender_name=sender.split('<')[0].strip() or sender.split('<')[-1].strip('>')
+                            )
+                        except Exception as e:
+                            print(f"Handoff error in email check: {e}")
+                        
                     save_email(message_id, sender, subject, body, result["score"], result["emotion"], action, ticket_id, datetime.now().isoformat())
                     
                     # Auto CRM Linking
@@ -119,7 +133,9 @@ def send_reply(req: ReplyRequest):
         
     reply_text = req.custom_reply
     if not reply_text:
-        reply_text = generate_reply(target_email['body'], target_email['action'])
+        reply_data = generate_reply(target_email['body'], target_email['action'])
+        reply_text = reply_data["answer"]
+        reply_source = reply_data["source"]
         
     try:
         if EMAIL_USER and EMAIL_PASSWORD:
@@ -152,12 +168,28 @@ def auto_process():
     tickets_created = 0
     
     for email in pending:
-        reply_text = generate_reply(email['body'], email['action'])
+        reply_data = generate_reply(email['body'], email['action'])
+        reply_text = reply_data["answer"]
+        reply_source = reply_data["source"]
         
         if email['action'] == 'ESCALATE' and not email['ticket_id']:
             ticket_id = create_ticket(email['sender'], f"Email: {email['subject']}", email['sentiment_score'])
             # update ticket_id in db (not strictly implemented but assumed)
             tickets_created += 1
+            
+            try:
+                from handoff_service import trigger_handoff
+                trigger_handoff(
+                    customer_message=email['body'],
+                    sentiment_score=email['sentiment_score'],
+                    emotion=email['emotion'],
+                    channel="email",
+                    session_id=f"email-{email['message_id']}",
+                    sender_id=email['sender'],
+                    sender_name=email['sender'].split('<')[0].strip() or email['sender'].split('<')[-1].strip('>')
+                )
+            except Exception as e:
+                print(f"Handoff error in email auto-process: {e}")
             
         try:
             if EMAIL_USER and EMAIL_PASSWORD:

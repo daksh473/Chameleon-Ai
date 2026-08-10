@@ -11,10 +11,11 @@ import KnowledgeBaseView from "./components/KnowledgeBaseView";
 import AnalyticsView from "./components/AnalyticsView";
 import PredictionsView from "./components/PredictionsView";
 import EmailView from "./components/EmailView";
+import TelegramView from "./components/TelegramView";
 import CrmView from "./components/CrmView";
 import AgentConsole from "./components/AgentConsole";
 import ExcelView from "./components/ExcelView";
-import LandingPage from "./components/landing/LandingPage";
+// Landing page removed
 
 const API = "http://localhost:8000";
 
@@ -64,8 +65,8 @@ function speakText(text, lang = "en") {
    ───────────────────────────────────────────── */
 const LANG = {
   en: {
-    brand: "Sentiment AI",
-    greeting: "Welcome to Sentiment AI",
+    brand: "Chameleon AI",
+    greeting: "Welcome to Chameleon AI",
     greetingSub: "Analyze emotions, detect sentiment, and route conversations intelligently.",
     placeholder: "Describe a customer interaction…",
     send: "Send",
@@ -115,8 +116,8 @@ const LANG = {
     },
   },
   hi: {
-    brand: "Sentiment AI",
-    greeting: "Sentiment AI में आपका स्वागत है",
+    brand: "Chameleon AI",
+    greeting: "Chameleon AI में आपका स्वागत है",
     greetingSub: "भावनाओं का विश्लेषण करें, भावना का पता लगाएं, और बातचीत को बुद्धिमानी से रूट करें।",
     placeholder: "ग्राहक की बातचीत का वर्णन करें…",
     send: "भेजें",
@@ -217,7 +218,7 @@ export default function App() {
   const [lastEmotion, setLastEmotion] = useState("neutral");
   const [alert, setAlert]             = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [activeView, setActiveView]   = useState("landing");
+  const [activeView, setActiveView]   = useState("chat");
   const [activeTicketId, setActiveTicketId] = useState(null);
   const [channelFilter, setChannelFilter] = useState("All Channels");
 
@@ -322,9 +323,9 @@ export default function App() {
     const connect = () => {
       const ws = new WebSocket("ws://localhost:8000/ws");
       wsRef.current = ws;
-      ws.onopen  = () => setStatus("live");
-      ws.onclose = () => { setStatus("disconnected"); setTimeout(connect, 3000); };
-      ws.onerror = () => ws.close();
+      ws.onopen  = () => { console.log("WebSocket connected."); setStatus("live"); };
+      ws.onclose = (e) => { console.log("WebSocket closed:", e.reason); setStatus("disconnected"); setTimeout(connect, 3000); };
+      ws.onerror = (e) => { console.error("WebSocket error:", e); ws.close(); };
       ws.onmessage = (e) => {
         const data = JSON.parse(e.data);
 
@@ -486,13 +487,6 @@ export default function App() {
 
 
 
-  if (activeView === "landing") {
-    return (
-      <div style={{ height: "100vh", overflow: "auto", background: "#0a0a0f" }}>
-        <LandingPage onStart={() => setActiveView("chat")} />
-      </div>
-    );
-  }
 
   return (
     <div className="app-shell">
@@ -504,7 +498,7 @@ export default function App() {
         <div className="sidebar-brand" style={{ display: 'flex', alignItems: 'center' }}>
           <img 
             src="/brand-eye-icon.png" 
-            alt="Sentiment AI Eye" 
+            alt="Chameleon AI Eye" 
             className="sidebar-brand-icon w-5 h-5 object-contain inline-block mr-2 invert-[48%] sepia-[79%] saturate-[2476%] hue-rotate-[86deg] brightness-[118%] contrast-[119%]" 
             style={{ width: '20px', height: '20px', display: 'inline-block', marginRight: '8px', verticalAlign: 'middle', filter: 'invert(48%) sepia(79%) saturate(2476%) hue-rotate(86deg) brightness(118%) contrast(119%)' }}
           />
@@ -526,6 +520,10 @@ export default function App() {
           <button className={`sidebar-nav-btn ${activeView === 'email' ? 'active' : ''}`} onClick={() => setActiveView('email')}>
             <Mail size={15} />
             <span>{T.sidebar.email || "Email"}</span>
+          </button>
+          <button className={`sidebar-nav-btn ${activeView === 'telegram' ? 'active' : ''}`} onClick={() => setActiveView('telegram')}>
+            <Send size={15} />
+            <span>Telegram</span>
           </button>
           <button className={`sidebar-nav-btn ${activeView === 'crm' ? 'active' : ''}`} onClick={() => setActiveView('crm')}>
             <Users size={15} />
@@ -561,7 +559,7 @@ export default function App() {
         <div className="sidebar-section-label">{T.sidebar.recent}</div>
         <div className="sidebar-list">
           {msgs.length > 0 ? (
-            [...msgs].reverse().slice(0, 12).map((m, i) => (
+            (Array.isArray(msgs) ? [...msgs] : []).reverse().slice(0, 12).map((m, i) => (
               <div key={i} className="sidebar-item slide-in" style={{ animationDelay: `${i * 30}ms` }} onClick={() => setActiveView("chat")}>
                 <MessageSquare size={13} className="sidebar-item-icon" />
                 <span className="sidebar-item-text">
@@ -640,6 +638,8 @@ export default function App() {
             <KnowledgeBaseView />
           ) : activeView === "email" ? (
             <EmailView />
+          ) : activeView === "telegram" ? (
+            <TelegramView setActiveTab={setActiveView} />
           ) : activeView === "crm" ? (
             <CrmView />
           ) : activeView === "analytics" ? (
@@ -697,7 +697,7 @@ export default function App() {
                 <div className="greeting-container fade-in flex flex-col items-center justify-center text-center">
                   <img 
                     src="/welcome-brand.png" 
-                    alt="Sentiment AI Logo" 
+                    alt="Chameleon AI Logo" 
                     className="w-full max-w-[320px] h-auto mx-auto mb-6 block object-contain" 
                     onError={(e) => { e.target.style.display = 'none'; }}
                   />
@@ -731,7 +731,7 @@ export default function App() {
                     </select>
                   </div>
                   <div className="messages-list">
-                    {msgs.filter(m => channelFilter === "All Channels" || m.channel === channelFilter || (channelFilter === 'voice' && m.source === 'voice')).map((m, i) => {
+                    {(Array.isArray(msgs) ? msgs : []).filter(m => channelFilter === "All Channels" || m.channel === channelFilter || (channelFilter === 'voice' && m.source === 'voice')).map((m, i) => {
                       const meta = ACTION_META[m.action] || ACTION_META.NORMAL;
                       const cardClass = `card-${m.action.toLowerCase()}`;
                       
@@ -822,7 +822,7 @@ export default function App() {
                       <span className="rec-dot" />
                       <span className="rec-time">{fmtTime(recordTime)}</span>
                       <div className="waveform-bars">
-                        {waveBars.map((h, i) => (
+                        {(Array.isArray(waveBars) ? waveBars : []).map((h, i) => (
                           <span key={i} className="wave-bar" style={{ height: `${h}px` }} />
                         ))}
                       </div>
@@ -962,7 +962,7 @@ export default function App() {
                       </div>
                       {customerProfile.common_issues?.length > 0 && (
                         <div className="memory-issues">
-                          {customerProfile.common_issues.map((issue, i) => (
+                          {(Array.isArray(customerProfile.common_issues) ? customerProfile.common_issues : []).map((issue, i) => (
                             <span key={i} className="memory-chip">{issue}</span>
                           ))}
                         </div>

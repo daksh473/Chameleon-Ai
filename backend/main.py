@@ -16,7 +16,7 @@ import json
 import asyncio
 from ai.proactive_alerts import proactive_alert_cron
 
-from routers import tickets, conversation, knowledge, analytics, voice, email, crm, handoff, memory, predict, language, excel
+from routers import tickets, conversation, knowledge, analytics, voice, email, crm, handoff, memory, predict, language, excel, telegram
 import httpx
 import threading
 from caspian_agent import start_caspian_listener
@@ -24,7 +24,7 @@ from caspian_agent import start_caspian_listener
 load_dotenv()
 init_db()
 
-app = FastAPI()
+app = FastAPI(title="Chameleon AI")
 
 app.add_middleware(
     CORSMiddleware,
@@ -60,6 +60,7 @@ app.include_router(memory.router)
 app.include_router(predict.router)
 app.include_router(language.router)
 app.include_router(excel.router)
+app.include_router(telegram.router)
 
 class AgentConnectionManager:
     def __init__(self):
@@ -89,14 +90,17 @@ class MessageRequest(BaseModel):
 def analyze(req: MessageRequest):
     result = analyze_sentiment(req.message)
     action = decide_action(result["score"])
-    reply  = generate_reply(req.message, action)
+    reply_data = generate_reply(req.message, action)
+    reply = reply_data["answer"]
+    reply_source = reply_data["source"]
     save_conversation(req.message, result["score"], result["emotion"], action, reply)
     return {
         "message": req.message,
         "score":   result["score"],
         "emotion": result["emotion"],
         "action":  action,
-        "reply":   reply
+        "reply":   reply,
+        "source":  reply_source
     }
 
 @app.get("/history")
@@ -142,10 +146,12 @@ async def process_message(data: str, session_id: str, customer_id: str, chat_his
 
     result = analyze_sentiment(text)
     action = decide_action(result["score"])
-    reply = generate_reply(text, action, history_formatted, memory_context, detected_lang)
+    reply_data = generate_reply(text, action, history_formatted, memory_context, detected_lang)
+    reply = reply_data["answer"]
+    reply_source = reply_data["source"]
 
     save_conversation_message(session_id, "user", text, result["score"], result["emotion"], action, detected_lang)
-    save_conversation_message(session_id, "assistant", reply, result["score"], result["emotion"], action, detected_lang)
+    save_conversation_message(session_id, "assistant", reply, result["score"], result["emotion"], action, detected_lang, source=reply_source)
     save_conversation(text, result["score"], result["emotion"], action, reply)
 
     chat_history.append({"role": "user", "message": text, "sentiment": result["score"], "language": detected_lang})
@@ -183,21 +189,17 @@ async def process_message(data: str, session_id: str, customer_id: str, chat_his
         ticket_id = ticket["id"] if ticket else None
 
         try:
-            async with httpx.AsyncClient() as client:
-                res = await client.post("http://127.0.0.1:8000/handoff/create", json={
-                    "session_id": session_id,
-                    "sentiment_score": result["score"],
-                    "emotion": result["emotion"],
-                    "conversation_history": chat_history,
-                    "customer_id": crm_customer_id or 1
-                })
-                handoff_data = res.json()
-                agent_name = handoff_data.get("agent", {}).get("name") if handoff_data.get("agent") else "an available agent"
-                reply = f"Transferring to human agent... You've been connected to {agent_name}."
-                asyncio.create_task(agent_manager.broadcast({
-                    "type": "new_handoff",
-                    "handoff": handoff_data
-                }))
+            from handoff_service import trigger_handoff
+            hid = trigger_handoff(
+                customer_message=text,
+                sentiment_score=result["score"],
+                emotion=result["emotion"],
+                channel="live_chat",
+                session_id=session_id,
+                conversation_history=chat_history,
+                customer_id=crm_customer_id or 1
+            )
+            print(f"Handoff {hid} created for live chat")
         except Exception as e:
             print(f"Handoff error: {e}")
 

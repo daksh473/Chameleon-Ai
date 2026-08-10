@@ -68,10 +68,27 @@ def _log_footer(action: str):
 def handle_message(message):
     text = message.text
     channel = message.channel   # "email" or "telegram"
-    sender = message.sender     # customer identifier from that channel
-    user_id = sender            # unified identity (email addr or telegram ID)
+    sender_raw = message.sender
+    if isinstance(sender_raw, dict):
+        user_id = str(sender_raw.get('address', ''))
+        customer_name = sender_raw.get('name', user_id)
+    else:
+        user_id = str(sender_raw)
+        customer_name = str(sender_raw)
 
-    _log_header(channel, sender)
+    _log_header(channel, customer_name)
+
+    # Auto-link to CRM
+    from database import create_customer
+    create_customer(
+        name=customer_name,
+        email="",
+        phone="",
+        company="",
+        source="telegram" if channel == "telegram" else channel,
+        notes="",
+        session_id=user_id
+    )
 
     # ── STAGE 1: Sentiment Analysis (existing engine) ──
     try:
@@ -129,13 +146,29 @@ def handle_message(message):
     elif routing_action == "escalate":
         # Create a high-priority ticket in the existing ticket system
         create_ticket(
-            customer_name=sender,
+            customer_name=customer_name,
             issue=text,
             score=score,
             language="en",
             source=f"caspian-{channel}"
         )
         _log_stage("TICKET", f"High-priority ticket created (source: caspian-{channel})")
+
+        from handoff_service import trigger_handoff
+        try:
+            trigger_handoff(
+                customer_message=text,
+                sentiment_score=score,
+                emotion=emotion,
+                channel=f"caspian-{channel}",
+                sender_id=user_id,
+                sender_name=customer_name,
+                session_id=f"caspian-{channel}-{user_id}",
+                conversation_history=user_history
+            )
+            _log_stage("HANDOFF", "Handoff triggered to Agent Console")
+        except Exception as e:
+            _log_stage("HANDOFF_ERR", f"Failed to trigger handoff: {e}")
 
         # Still generate a reply to acknowledge the customer
         reply_text = generate_adaptive_reply(
@@ -150,7 +183,7 @@ def handle_message(message):
     elif routing_action == "queue":
         # Create a medium-priority ticket for human review
         create_ticket(
-            customer_name=sender,
+            customer_name=customer_name,
             issue=f"[QUEUED P{routing_priority}] {text}",
             score=score,
             language="en",
@@ -175,7 +208,9 @@ def handle_message(message):
         emotion=emotion,
         action=action,
         reply=reply_text or "",
-        channel=f"caspian-{channel}"
+        channel=f"caspian-{channel}",
+        sender_id=user_id,
+        sender_name=customer_name
     )
     _log_stage("DATABASE", "Conversation saved to conversations table")
 

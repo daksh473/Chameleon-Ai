@@ -10,7 +10,7 @@ def detect_language(text: str) -> str:
     """
     try:
         response = client.chat.completions.create(
-            model="llama3-8b-8192",
+            model="llama-3.3-70b-versatile",
             messages=[
                 {
                     "role": "system",
@@ -36,7 +36,7 @@ def translate_text(text: str, target_language_code: str) -> str:
     """
     try:
         response = client.chat.completions.create(
-            model="llama3-8b-8192",
+            model="llama-3.3-70b-versatile",
             messages=[
                 {
                     "role": "system",

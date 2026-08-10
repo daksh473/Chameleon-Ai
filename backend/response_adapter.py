@@ -106,12 +106,13 @@ def generate_adaptive_reply(
     )
 
     # Call the existing generate_reply with our enriched context
-    reply = generate_reply(
+    reply_data = generate_reply(
         message=message,
         action=action,
         history=user_history,
         memory_context=adaptive_context,
         detected_language="en"
     )
+    reply = reply_data["answer"]
 
     return reply

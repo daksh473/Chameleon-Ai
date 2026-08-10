@@ -69,6 +69,8 @@ def init_db():
             sentiment_score REAL,
             emotion TEXT,
             action TEXT,
+            timestamp TEXT,
+            source TEXT DEFAULT 'ai_generated',
             ticket_id INTEGER,
             reply_sent TEXT,
             reply_sent_at TEXT,
@@ -115,6 +117,21 @@ def init_db():
         
     try:
         cursor.execute("ALTER TABLE conversations ADD COLUMN channel TEXT DEFAULT 'dashboard'")
+    except sqlite3.OperationalError:
+        pass
+        
+    try:
+        cursor.execute("ALTER TABLE conversations ADD COLUMN source TEXT DEFAULT 'ai_generated'")
+    except sqlite3.OperationalError:
+        pass
+        
+    try:
+        cursor.execute("ALTER TABLE conversations ADD COLUMN sender_id TEXT")
+    except sqlite3.OperationalError:
+        pass
+        
+    try:
+        cursor.execute("ALTER TABLE conversations ADD COLUMN sender_name TEXT")
     except sqlite3.OperationalError:
         pass
         
@@ -188,9 +205,20 @@ def init_db():
             accepted_at TEXT,
             resolved_at TEXT,
             customer_rating INTEGER,
+            channel TEXT DEFAULT 'live_chat',
+            sender_id TEXT,
+            sender_name TEXT,
             FOREIGN KEY (agent_id) REFERENCES agents(id)
         )
     ''')
+
+    # Migration for older dbs without these columns
+    try:
+        cursor.execute("ALTER TABLE handoffs ADD COLUMN channel TEXT DEFAULT 'live_chat'")
+        cursor.execute("ALTER TABLE handoffs ADD COLUMN sender_id TEXT")
+        cursor.execute("ALTER TABLE handoffs ADD COLUMN sender_name TEXT")
+    except Exception:
+        pass
 
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS memory_store (
@@ -360,20 +388,20 @@ def get_tickets_stats():
 # -----------------------
 # CONVERSATION FUNCTIONS
 # -----------------------
-def save_conversation_message(session_id: str, role: str, message: str, sentiment_score: float, emotion: str, action: str, language: str = "en", channel: str = "dashboard"):
+def save_conversation_message(session_id: str, role: str, message: str, sentiment_score: float=None, emotion: str=None, action: str=None, language: str='en', channel: str='dashboard', source: str='ai_generated', sender_id: str=None, sender_name: str=None):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute('''
-        INSERT INTO conversations (session_id, role, message, sentiment_score, emotion, action, timestamp, language, channel)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (session_id, role, message, sentiment_score, emotion, action, datetime.now().isoformat(), language, channel))
+        INSERT INTO conversations (session_id, role, message, sentiment_score, emotion, action, timestamp, language, channel, source, sender_id, sender_name)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (session_id, role, message, sentiment_score, emotion, action, datetime.now().isoformat(), language, channel, source, sender_id, sender_name))
     conn.commit()
     conn.close()
 
 # Legacy function for backward compatibility
-def save_conversation(message: str, score: float, emotion: str, action: str, reply: str, channel: str = "dashboard"):
-    save_conversation_message("legacy", "user", message, score, emotion, action, "en", channel)
-    save_conversation_message("legacy", "assistant", reply, score, emotion, action, "en", channel)
+def save_conversation(message: str, score: float, emotion: str, action: str, reply: str, channel: str = "dashboard", sender_id: str = None, sender_name: str = None):
+    save_conversation_message("legacy", "user", message, score, emotion, action, "en", channel, sender_id=sender_id, sender_name=sender_name)
+    save_conversation_message("legacy", "assistant", reply, score, emotion, action, "en", channel, sender_id=sender_id, sender_name=sender_name)
 
 def get_conversation_history(session_id: str):
     conn = sqlite3.connect(DB_PATH)
@@ -647,6 +675,97 @@ def get_email_stats():
         "replied": replied,
         "escalated": escalated,
         "avg_sentiment": round(avg_score, 3) if avg_score else 0.0
+    }
+
+# -------------------------
+# TELEGRAM FUNCTIONS
+# -------------------------
+def get_telegram_users():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT 
+            sender_id,
+            MAX(sender_name) as sender_name,
+            COUNT(*) as total_messages,
+            MAX(timestamp) as last_message_time,
+            AVG(sentiment_score) as avg_sentiment
+        FROM conversations 
+        WHERE channel = 'caspian-telegram' AND role = 'user'
+        GROUP BY sender_id
+        ORDER BY last_message_time DESC
+    ''')
+    rows = cursor.fetchall()
+    
+    users = []
+    for r in rows:
+        # Get the latest message for the preview
+        cursor.execute('''
+            SELECT message, action 
+            FROM conversations 
+            WHERE channel = 'caspian-telegram' AND sender_id = ? AND role = 'user'
+            ORDER BY timestamp DESC LIMIT 1
+        ''', (r['sender_id'],))
+        latest = cursor.fetchone()
+        
+        # Count open tickets for this user
+        cursor.execute('SELECT COUNT(*) FROM tickets WHERE customer_name = ? AND status = "OPEN"', (r['sender_name'],))
+        open_tickets = cursor.fetchone()[0]
+        
+        users.append({
+            "sender_id": r['sender_id'],
+            "sender_name": r['sender_name'],
+            "total_messages": r['total_messages'],
+            "last_message_time": r['last_message_time'],
+            "avg_sentiment": round(r['avg_sentiment'], 3) if r['avg_sentiment'] else 0.5,
+            "last_message": latest['message'] if latest else "",
+            "last_action": latest['action'] if latest else "NORMAL",
+            "open_tickets_count": open_tickets
+        })
+        
+    conn.close()
+    return users
+
+def get_telegram_user_conversation(sender_id: str):
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT * FROM conversations 
+        WHERE channel = 'caspian-telegram' AND sender_id = ?
+        ORDER BY timestamp ASC
+    ''', (sender_id,))
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+def get_telegram_stats():
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    
+    cursor.execute("SELECT COUNT(DISTINCT sender_id) FROM conversations WHERE channel = 'caspian-telegram' AND role = 'user'")
+    total_users = cursor.fetchone()[0]
+    
+    cursor.execute("SELECT COUNT(*) FROM conversations WHERE channel = 'caspian-telegram' AND role = 'user'")
+    total_messages = cursor.fetchone()[0]
+    
+    cursor.execute("SELECT COUNT(*) FROM conversations WHERE channel = 'caspian-telegram' AND role = 'user' AND DATE(timestamp) = DATE('now')")
+    messages_today = cursor.fetchone()[0]
+    
+    cursor.execute("SELECT AVG(sentiment_score) FROM conversations WHERE channel = 'caspian-telegram' AND role = 'user'")
+    avg_score = cursor.fetchone()[0]
+    
+    cursor.execute("SELECT COUNT(*) FROM conversations WHERE channel = 'caspian-telegram' AND role = 'user' AND action = 'ESCALATE'")
+    escalated_count = cursor.fetchone()[0]
+    
+    conn.close()
+    return {
+        "total_unique_users": total_users,
+        "total_messages": total_messages,
+        "messages_today": messages_today,
+        "avg_sentiment_across_all": round(avg_score, 3) if avg_score else 0.0,
+        "escalated_count": escalated_count
     }
 
 # ==========================================
@@ -1071,15 +1190,15 @@ def update_agent_status(agent_id, status):
     conn.close()
     return get_agent(agent_id)
 
-def create_handoff(session_id, customer_id, agent_id, reason, sentiment_score, emotion, priority, conversation_history):
+def create_handoff(session_id, customer_id, agent_id, reason, sentiment_score, emotion, priority, conversation_history, channel='live_chat', sender_id=None, sender_name=None):
     from datetime import datetime
     import json
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute('''
-        INSERT INTO handoffs (session_id, customer_id, agent_id, reason, sentiment_score, emotion, priority, conversation_history, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (session_id, customer_id, agent_id, reason, sentiment_score, emotion, priority, json.dumps(conversation_history), datetime.now().isoformat()))
+        INSERT INTO handoffs (session_id, customer_id, agent_id, reason, sentiment_score, emotion, priority, conversation_history, created_at, channel, sender_id, sender_name)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (session_id, customer_id, agent_id, reason, sentiment_score, emotion, priority, json.dumps(conversation_history), datetime.now().isoformat(), channel, sender_id, sender_name))
     conn.commit()
     hid = cursor.lastrowid
     conn.close()

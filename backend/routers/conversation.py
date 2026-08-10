@@ -51,15 +51,17 @@ def send_message(req: MessageRequest):
 
     result = analyze_sentiment(req.message)
     action = decide_action(result["score"])
-    reply = generate_reply(req.message, action, history_formatted, memory_context, detected_lang)
+    reply_data = generate_reply(req.message, action, history_formatted, memory_context, detected_lang)
+    reply = reply_data["answer"]
+    reply_source = reply_data["source"]
 
     save_conversation_message(
         session_id=req.session_id, role="user", message=req.message,
-        sentiment_score=result["score"], emotion=result["emotion"], action=action, language=detected_lang
+        sentiment_score=result["score"], emotion=result["emotion"], action=action, language=detected_lang, channel=req.channel
     )
     save_conversation_message(
         session_id=req.session_id, role="assistant", message=reply,
-        sentiment_score=result["score"], emotion=result["emotion"], action=action, language=detected_lang
+        sentiment_score=result["score"], emotion=result["emotion"], action=action, language=detected_lang, channel=req.channel, source=reply_source
     )
 
     extract_and_store_memories(req.session_id, customer_id, req.message, reply, result["score"])

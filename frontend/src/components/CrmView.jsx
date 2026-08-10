@@ -30,6 +30,7 @@ export default function CrmView() {
   const [deals, setDeals] = useState([]);
   const [pipeline, setPipeline] = useState({});
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // Profile specific
   const [selectedProfileId, setSelectedProfileId] = useState(null);
@@ -45,19 +46,22 @@ export default function CrmView() {
   const [newDeal, setNewDeal] = useState({ title: "", value: 0, stage: "lead", customer_id: "", expected_close: "" });
 
   const fetchData = async () => {
+    setLoading(true);
+    setError(null);
     try {
       const [stRes, cRes, dRes, pRes] = await Promise.all([
-        fetch(`${API}/crm/stats`),
-        fetch(`${API}/crm/customers`),
-        fetch(`${API}/crm/deals`),
-        fetch(`${API}/crm/pipeline`)
+        fetch(`${API}/crm/stats`).then(r => r.ok ? r.json() : null),
+        fetch(`${API}/crm/customers`).then(r => r.ok ? r.json() : []),
+        fetch(`${API}/crm/deals`).then(r => r.ok ? r.json() : []),
+        fetch(`${API}/crm/pipeline`).then(r => r.ok ? r.json() : {})
       ]);
-      setStats(await stRes.json());
-      setCustomers(await cRes.json());
-      setDeals(await dRes.json());
-      setPipeline(await pRes.json());
+      setStats(stRes);
+      setCustomers(cRes || []);
+      setDeals(dRes || []);
+      setPipeline(pRes || {});
     } catch (e) {
       console.error(e);
+      setError("Failed to load CRM data");
     } finally {
       setLoading(false);
     }
@@ -318,7 +322,8 @@ export default function CrmView() {
     );
   };
 
-  if (loading) return <div className="crm-loading">Loading CRM...</div>;
+  if (loading) return <div className="crm-loading p-8 text-gray-400">Loading CRM...</div>;
+  if (error) return <div className="p-8 text-red-400">Error: {error}</div>;
 
   return (
     <div className="crm-view">

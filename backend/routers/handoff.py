@@ -52,56 +52,27 @@ def change_agent_status(agent_id: int, req: AgentStatusUpdate):
     agent = update_agent_status(agent_id, req.status)
     return {"success": True, "agent": agent}
 
+from handoff_service import trigger_handoff
+
 @router.post("/create")
 def new_handoff(req: HandoffCreate):
-    # Determine reason/specialization via AI if there is conversation history
     issue_preview = "General inquiry"
     if req.conversation_history:
         issue_preview = req.conversation_history[-1].get("message", "")[:200]
         
-    route_info = auto_route_agent(issue_preview)
-    specialization = route_info.get("specialization", "general")
-    reason = route_info.get("reason", "Needs human assistance")
-
-    # Find best agent
-    agents = get_agents()
-    # Filter by online and under max load
-    available = [a for a in agents if a["status"] == "online" and a["current_conversations"] < a["max_conversations"]]
-    
-    selected_agent = None
-    if available:
-        # Prefer matching specialization
-        matching = [a for a in available if a["specialization"] == specialization]
-        pool = matching if matching else available
-        # Pick least busy
-        pool.sort(key=lambda x: x["current_conversations"])
-        selected_agent = pool[0]
-
-    priority = "medium"
-    if req.sentiment_score is not None:
-        if req.sentiment_score < 0.2:
-            priority = "urgent"
-        elif req.sentiment_score < 0.4:
-            priority = "high"
-
-    agent_id = selected_agent["id"] if selected_agent else None
-    
-    hid = create_handoff(
-        session_id=req.session_id,
-        customer_id=req.customer_id,
-        agent_id=agent_id,
-        reason=f"[{specialization.upper()}] {reason}",
+    hid = trigger_handoff(
+        customer_message=issue_preview,
         sentiment_score=req.sentiment_score,
         emotion=req.emotion,
-        priority=priority,
-        conversation_history=req.conversation_history
+        channel="live_chat",
+        session_id=req.session_id,
+        conversation_history=req.conversation_history,
+        customer_id=req.customer_id
     )
 
     return {
         "handoff_id": hid,
-        "agent": selected_agent,
-        "estimated_wait": 0 if selected_agent else 5,
-        "priority": priority
+        "success": True
     }
 
 @router.post("/accept/{handoff_id}")

@@ -1,4 +1,4 @@
-# SentimentAI — Real-time Emotion Intelligence System
+# Chameleon AI — Real-time Emotion Intelligence System
 
 > **Zint AI Hackathon 2026** | Built by Daksh Pareek, Priyanshu Sharma, Sannidhi Paul
 

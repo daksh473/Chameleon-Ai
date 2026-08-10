@@ -1,4 +1,4 @@
-# 🎤 SentimentAI — Hackathon Demo Script
+# 🎤 Chameleon AI — Hackathon Demo Script
 ## FlowZint AI Hackathon 2026
 
 **Total Time: 3-4 minutes**
@@ -10,7 +10,7 @@
 
 > "Imagine aap ek business owner ho. Hazaron customers roz aapke support team se baat karte hain. Kuch khush hain, kuch frustrated hain — aur kuch itne angry hain ki deal toot jaayegi. Problem yeh hai ki aapki team real-time mein yeh detect nahi kar sakti.
 >
-> Aaj hum present karte hain — **SentimentAI** — ek real-time emotion intelligence platform jo har customer message ko analyze karta hai, emotion detect karta hai, aur automatically sahi action leta hai."
+> Aaj hum present karte hain — **Chameleon AI** — ek real-time emotion intelligence platform jo har customer message ko analyze karta hai, emotion detect karta hai, aur automatically sahi action leta hai."
 
 ---
 
@@ -20,7 +20,7 @@
 >
 > Result? Angry customers chale jaate hain. Happy customers ko upsell miss ho jaata hai. Aur support agents ko pata hi nahi chalta ki kab escalate karna tha.
 >
-> **SentimentAI yeh sab solve karta hai.**"
+> **Chameleon AI yeh sab solve karta hai.**"
 
 ---
 
@@ -64,11 +64,11 @@
 
 ## CLOSING (30 sec)
 
-> "SentimentAI sirf ek chatbot nahi hai. Yeh ek **predictive intelligence layer** hai jo kisi bhi business ke customer service pe laga sakte ho.
+> "Chameleon AI sirf ek chatbot nahi hai. Yeh ek **predictive intelligence layer** hai jo kisi bhi business ke customer service pe laga sakte ho.
 >
 > Innovation, scalability, real-world problem solving, technical architecture — humne FlowZint ke har criteria ko address kiya hai.
 >
-> **SentimentAI — Emotion ko samjho. Customer ko rakho.**
+> **Chameleon AI — Emotion ko samjho. Customer ko rakho.**
 >
 > Thank you!"
 

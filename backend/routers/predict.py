@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Query, HTTPException
 from datetime import datetime
+import traceback
 from database import get_predictions_cache, set_predictions_cache, CACHE_TTL_SECONDS
 from ai.predictive_ai import (
     compute_churn_risks, compute_upsell_opportunities, compute_ticket_forecast,
@@ -68,14 +69,23 @@ def best_time_to_contact(customer_id: int, force: bool = Query(False)):
 
 @router.get("/dashboard")
 def prediction_dashboard(force: bool = Query(False)):
-    if not force:
-        cached = get_predictions_cache("dashboard")
-        if cached and not cached["expired"]:
-            return {**cached["data"], "cached": True, "calculated_at": cached["calculated_at"]}
+    try:
+        if not force:
+            cached = get_predictions_cache("dashboard")
+            if cached and not cached["expired"]:
+                return {**cached["data"], "cached": True, "calculated_at": cached["calculated_at"]}
 
-    data = compute_full_dashboard(use_ai=True)
-    set_predictions_cache("dashboard", data)
-    return {**data, "cached": False}
+        data = compute_full_dashboard(use_ai=True)
+        set_predictions_cache("dashboard", data)
+        return {**data, "cached": False}
+    except Exception as e:
+        print("Prediction dashboard error:")
+        traceback.print_exc()
+        return {
+            "churn_risk": [], "upsell_opportunities": [], "ticket_forecast": {}, 
+            "revenue_forecast": {}, "sentiment_forecast": {}, "at_risk_customers": [], 
+            "ai_insights": [], "summary": {}, "cached": False, "error": str(e)
+        }
 
 
 @router.post("/dashboard/recalculate")

@@ -48,6 +48,7 @@ function openCrm() {
 export default function PredictionsView() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [churnFilter, setChurnFilter] = useState("all");
   const [showActual, setShowActual] = useState(false);
@@ -57,13 +58,19 @@ export default function PredictionsView() {
   const fetchDashboard = useCallback(async (force = false) => {
     if (force) setRefreshing(true);
     else setLoading(true);
+    setError(null);
     try {
       const url = force ? `${API}/dashboard/recalculate` : `${API}/dashboard`;
-      const res = await fetch(force ? url : url, { method: force ? "POST" : "GET" });
-      const json = await res.json();
-      setData(json);
+      const res = await fetch(url, { method: force ? "POST" : "GET" });
+      if (res.ok) {
+        const json = await res.json();
+        setData(json);
+      } else {
+        throw new Error("Failed to fetch dashboard data");
+      }
     } catch (e) {
       console.error(e);
+      setError("Failed to load Predictions data");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -127,6 +134,14 @@ export default function PredictionsView() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="predictions-view p-8 flex items-center justify-center text-red-400">
+        Error: {error}
+      </div>
+    );
+  }
+
   const summary = data?.summary || {};
   const highRisk = (data?.churn_risk || []).filter(c => c.churn_probability >= 0.5);
   const rev = data?.revenue_forecast || {};
@@ -164,7 +179,7 @@ export default function PredictionsView() {
             <div className="pred-alert-label">Churn Alert</div>
             <div className="pred-alert-value">{summary.at_risk_count || highRisk.length} customers at risk</div>
             <ul className="pred-alert-list">
-              {highRisk.slice(0, 3).map(c => (
+              {(Array.isArray(highRisk) ? highRisk : []).slice(0, 3).map(c => (
                 <li key={c.customer_id}>{c.name} ({Math.round(c.churn_probability * 100)}%)</li>
               ))}
             </ul>
@@ -180,7 +195,7 @@ export default function PredictionsView() {
             <div className="pred-alert-label">Upsell Opportunity</div>
             <div className="pred-alert-value">{summary.upsell_count || 0} customers ready</div>
             <ul className="pred-alert-list">
-              {(data?.upsell_opportunities || []).slice(0, 3).map(c => (
+              {(Array.isArray(data?.upsell_opportunities) ? data.upsell_opportunities : []).slice(0, 3).map(c => (
                 <li key={c.customer_id}>{c.name} ({Math.round(c.upsell_probability * 100)}%)</li>
               ))}
             </ul>
@@ -266,7 +281,7 @@ export default function PredictionsView() {
                       <button className="pred-action-btn" onClick={() => openEmailCompose(
                         c.email || "",
                         `We value your business, ${c.name}`,
-                        `Hi ${c.name},\n\nWe noticed you haven't been in touch recently and wanted to check in. ${c.recommended_action || ""}\n\nBest regards,\nSentimentAI Team`
+                        `Hi ${c.name},\n\nWe noticed you haven't been in touch recently and wanted to check in. ${c.recommended_action || ""}\n\nBest regards,\nChameleon AI Team`
                       )}>
                         <Mail size={12} /> Contact
                       </button>
@@ -312,7 +327,7 @@ export default function PredictionsView() {
                 <button className="pred-action-btn full" onClick={() => openEmailCompose(
                   c.email || "",
                   `Special offer for ${c.name}`,
-                  `Hi ${c.name},\n\nBased on your positive experience with us, we'd like to offer you: ${c.best_offer}.\n\nWould you be interested in learning more?\n\nBest regards,\nSentimentAI Team`
+                  `Hi ${c.name},\n\nBased on your positive experience with us, we'd like to offer you: ${c.best_offer}.\n\nWould you be interested in learning more?\n\nBest regards,\nChameleon AI Team`
                 )}>
                   Send Offer
                 </button>

@@ -2,6 +2,7 @@ from groq import Groq
 import os
 from dotenv import load_dotenv
 from typing import List, Dict
+from ai.knowledge_ai import search_knowledge_base
 
 load_dotenv()
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
@@ -23,7 +24,14 @@ Thank them warmly and offer them a special discount or upgrade.
 Keep it under 2 sentences."""
 }
 
-def generate_reply(message: str, action: str, history: List[Dict[str, str]] = None, memory_context: str = None, detected_language: str = "en") -> str:
+def generate_reply(message: str, action: str, history: List[Dict[str, str]] = None, memory_context: str = None, detected_language: str = "en") -> dict:
+    print(f"Checking knowledge base for: {message}")
+    kb_result = search_knowledge_base(message)
+    if kb_result["source"] == "knowledge_base":
+        print(f"Knowledge Base match found (confidence {kb_result['confidence']}): {kb_result['answer']}")
+        return kb_result
+
+    print("No Knowledge Base match found. Falling back to AI generated response.")
     prompt = PROMPTS.get(action, PROMPTS["NORMAL"])
     
     # Append the language override directly
@@ -47,7 +55,11 @@ def generate_reply(message: str, action: str, history: List[Dict[str, str]] = No
         max_tokens=150,
         temperature=0.7
     )
-    return response.choices[0].message.content.strip()
+    return {
+        "source": "ai_generated",
+        "answer": response.choices[0].message.content.strip(),
+        "confidence": kb_result.get("confidence", 0.0)
+    }
 
 # Test
 if __name__ == "__main__":
@@ -59,4 +71,4 @@ if __name__ == "__main__":
     for msg, action in tests:
         reply = generate_reply(msg, action)
         print(f"\n[{action}] Customer: {msg}")
-        print(f"Bot: {reply}")
+        print(f"Bot [{reply['source']}]: {reply['answer']}")

@@ -25,37 +25,33 @@ export default function ExcelView() {
   const [previewModal, setPreviewModal] = useState(null);
   const [previewData, setPreviewData] = useState(null);
   const [loadingPreview, setLoadingPreview] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const fileInputRef = useRef(null);
 
-  const fetchStats = useCallback(async () => {
+  const fetchInitialData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     try {
-      const res = await fetch(`${API}/excel/stats`);
-      const data = await res.json();
-      setStats(data);
-    } catch (e) { console.error(e); }
-  }, []);
-
-  const fetchHistory = useCallback(async () => {
-    try {
-      const res = await fetch(`${API}/excel/history`);
-      const data = await res.json();
-      setHistory(data);
-    } catch (e) { console.error(e); }
-  }, []);
-
-  const fetchSyncStatus = useCallback(async () => {
-    try {
-      const res = await fetch(`${API}/excel/sync/status`);
-      const data = await res.json();
-      setSyncStatus(data);
-    } catch (e) { console.error(e); }
+      const [statsRes, histRes, syncRes] = await Promise.all([
+        fetch(`${API}/excel/stats`).then(r => r.ok ? r.json() : null),
+        fetch(`${API}/excel/history`).then(r => r.ok ? r.json() : []),
+        fetch(`${API}/excel/sync/status`).then(r => r.ok ? r.json() : null)
+      ]);
+      setStats(statsRes);
+      setHistory(histRes || []);
+      setSyncStatus(syncRes);
+    } catch (e) {
+      console.error(e);
+      setError("Failed to load Excel integration data");
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
-    fetchStats();
-    fetchHistory();
-    fetchSyncStatus();
-  }, [fetchStats, fetchHistory, fetchSyncStatus]);
+    fetchInitialData();
+  }, [fetchInitialData]);
 
   // ── Upload ──
   const handleFile = async (file) => {
@@ -100,8 +96,7 @@ export default function ExcelView() {
       });
       const data = await res.json();
       setImportResult({ success: true, ...data });
-      fetchStats();
-      fetchHistory();
+      fetchInitialData();
     } catch (e) {
       setImportResult({ error: true, message: e.message });
     }
@@ -122,8 +117,7 @@ export default function ExcelView() {
       });
       const data = await res.json();
       setImportResult({ success: true, ...data });
-      fetchStats();
-      fetchHistory();
+      fetchInitialData();
     } catch (e) {
       setImportResult({ error: true, message: e.message });
     }
@@ -166,8 +160,7 @@ export default function ExcelView() {
   const handleUndo = async (importId) => {
     try {
       await fetch(`${API}/excel/undo/${importId}`, { method: "POST" });
-      fetchHistory();
-      fetchStats();
+      fetchInitialData();
     } catch (e) { console.error(e); }
   };
 
@@ -182,7 +175,7 @@ export default function ExcelView() {
         body: JSON.stringify({ google_sheet_url: syncUrl })
       });
       await res.json();
-      fetchSyncStatus();
+      fetchInitialData();
     } catch (e) { console.error(e); }
     setSyncing(false);
   };
@@ -202,6 +195,9 @@ export default function ExcelView() {
     { type: "analytics", icon: "📈", title: "Analytics Report", key: null },
     { type: "full-report", icon: "📋", title: "Full Company Report", key: null }
   ];
+
+  if (loading) return <div className="excel-view p-8 text-gray-400">Loading Excel Integration...</div>;
+  if (error) return <div className="p-8 text-red-400">Error: {error}</div>;
 
   return (
     <div className="excel-view">

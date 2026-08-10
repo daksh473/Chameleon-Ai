@@ -26,7 +26,11 @@ def add_knowledge(req: AddKBRequest):
 
 @router.get("")
 def get_knowledge():
-    return get_all_kb_entries()
+    try:
+        return get_all_kb_entries()
+    except Exception as e:
+        print(f"Failed to load knowledge base: {e}")
+        return []
 
 @router.post("/search")
 def search_knowledge(req: SearchRequest):
@@ -76,14 +80,22 @@ Return STRICTLY a JSON object with this structure (no markdown formatting, just 
     except Exception as e:
         # Fallback to pure AI if parsing fails
         print("Knowledge Search Error:", e)
-        fallback_res = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[{"role": "user", "content": req.query}],
-            max_tokens=150,
-            temperature=0.7
-        )
-        return {
-            "is_kb": False,
-            "kb_id": None,
-            "answer": fallback_res.choices[0].message.content.strip()
-        }
+        try:
+            fallback_res = client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[{"role": "user", "content": req.query}],
+                max_tokens=150,
+                temperature=0.7
+            )
+            return {
+                "is_kb": False,
+                "kb_id": None,
+                "answer": fallback_res.choices[0].message.content.strip()
+            }
+        except Exception as fallback_e:
+            print("Fallback Knowledge Search Error:", fallback_e)
+            return {
+                "is_kb": False,
+                "kb_id": None,
+                "answer": "Sorry, I am unable to answer your query right now due to a service error."
+            }
