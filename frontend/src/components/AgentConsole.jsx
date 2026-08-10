@@ -417,9 +417,9 @@ export default function AgentConsole() {
       </div>
       
       <div className="console-content">
-        {activeTab === 'queue' && <LiveQueue />}
-        {activeTab === 'conversations' && <MyConversations />}
-        {activeTab === 'directory' && <AgentDirectory />}
+        {activeTab === 'queue' && LiveQueue()}
+        {activeTab === 'conversations' && MyConversations()}
+        {activeTab === 'directory' && AgentDirectory()}
         {activeTab === 'history' && (
           <div style={{ color: '#94a3b8' }}>History tracking would appear here showing all resolved handoffs.</div>
         )}

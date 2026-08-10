@@ -109,15 +109,15 @@ class AddPhoneRequest(BaseModel):
     phone: str
 
 @router.post("/agent-message/{handoff_id}")
-def agent_message(handoff_id: int, req: AgentMessageRequest):
+def agent_message(handoff_id: str, body: AgentMessageRequest):
     from messaging_service import send_agent_message
     
-    result = send_agent_message(handoff_id, req.message)
+    result = send_agent_message(int(handoff_id), body.message)
     
-    if not result["success"]:
-        raise HTTPException(500, result.get("error", "Failed to send message"))
+    if not result.get("success"):
+        raise HTTPException(status_code=502, detail=result)
         
-    return {"status": "success"}
+    return result
 
 @router.post("/call-customer/{handoff_id}")
 def call_customer(handoff_id: int):
