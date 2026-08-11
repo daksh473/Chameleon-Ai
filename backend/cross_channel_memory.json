@@ -118,9 +118,21 @@
         "message": "[TELEGRAM] I'm really sorry you're upset 😞. A human agent will help you ASAP and a ticket has been created to look into your issue 🚀",
         "direction": "outbound",
         "timestamp": "2026-08-10T16:34:02.698600"
+      },
+      {
+        "channel": "telegram",
+        "message": "Fuck off",
+        "direction": "inbound",
+        "timestamp": "2026-08-10T16:44:21.224810"
+      },
+      {
+        "channel": "telegram",
+        "message": "I'm really sorry you're upset 😞. A human agent will help you right away and a ticket has been auto-created 🚀",
+        "direction": "outbound",
+        "timestamp": "2026-08-10T16:44:22.967875"
       }
     ],
-    "last_seen": "2026-08-10T16:34:02.700439"
+    "last_seen": "2026-08-10T16:44:22.968909"
   },
   "Nr_111112": {
     "first_seen": "2026-08-10T14:59:36.559133",
