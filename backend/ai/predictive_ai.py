@@ -1,5 +1,6 @@
 import os
 import json
+import re
 from datetime import datetime, timedelta
 from groq import Groq
 from dotenv import load_dotenv
@@ -14,7 +15,7 @@ from database import (
 
 load_dotenv()
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
-MODEL = "llama-3.3-70b-versatile"
+MODEL = "groq/compound-mini"
 
 DOW_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
 
@@ -192,10 +193,14 @@ Only return valid JSON array."""
             max_tokens=800, temperature=0.3
         )
         text = resp.choices[0].message.content.strip()
+        text = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL).strip()
         if "```" in text:
             text = text.split("```")[1]
             if text.startswith("json"):
                 text = text[4:]
+        json_match = re.search(r'\[.*\]', text, re.DOTALL)
+        if json_match:
+            text = json_match.group()
         enriched = json.loads(text)
         name_map = {e["name"]: e for e in enriched if isinstance(e, dict)}
         for c in top_customers:
@@ -290,10 +295,14 @@ Return JSON array: [{{"name": "...", "best_offer": "..."}}]"""
             max_tokens=500, temperature=0.5
         )
         text = resp.choices[0].message.content.strip()
+        text = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL).strip()
         if "```" in text:
             text = text.split("```")[1]
             if text.startswith("json"):
                 text = text[4:]
+        json_match = re.search(r'\[.*\]', text, re.DOTALL)
+        if json_match:
+            text = json_match.group()
         enriched = json.loads(text)
         name_map = {e["name"]: e.get("best_offer") for e in enriched if isinstance(e, dict)}
         for o in opportunities:
@@ -360,6 +369,7 @@ write one actionable recommendation (1 sentence) for support team staffing."""
                 max_tokens=80, temperature=0.4
             )
             recommendation = resp.choices[0].message.content.strip()
+            recommendation = re.sub(r'<think>.*?</think>', '', recommendation, flags=re.DOTALL).strip()
         except Exception:
             pass
 
@@ -462,10 +472,14 @@ Return JSON: {{"trend_direction": "...", "summary": "one sentence"}}"""
                 max_tokens=100, temperature=0.3
             )
             text = resp.choices[0].message.content.strip()
+            text = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL).strip()
             if "```" in text:
                 text = text.split("```")[1]
                 if text.startswith("json"):
                     text = text[4:]
+            json_match = re.search(r'\{.*\}', text, re.DOTALL)
+            if json_match:
+                text = json_match.group()
             ai = json.loads(text)
             trend_direction = ai.get("trend_direction", trend_direction)
         except Exception:
@@ -549,10 +563,14 @@ Write a 1-sentence reason why this is the best time to contact. Return JSON: {{"
                 max_tokens=80, temperature=0.4
             )
             text = resp.choices[0].message.content.strip()
+            text = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL).strip()
             if "```" in text:
                 text = text.split("```")[1]
                 if text.startswith("json"):
                     text = text[4:]
+            json_match = re.search(r'\{.*\}', text, re.DOTALL)
+            if json_match:
+                text = json_match.group()
             ai = json.loads(text)
             reason = ai.get("reason", reason)
         except Exception:
@@ -583,10 +601,14 @@ Return JSON array of 5 items:
             max_tokens=600, temperature=0.5
         )
         text = resp.choices[0].message.content.strip()
+        text = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL).strip()
         if "```" in text:
             text = text.split("```")[1]
             if text.startswith("json"):
                 text = text[4:]
+        json_match = re.search(r'\[.*\]', text, re.DOTALL)
+        if json_match:
+            text = json_match.group()
         return json.loads(text)
     except Exception as ex:
         print(f"Insights AI error: {ex}")

@@ -4,6 +4,7 @@ from database import get_all_kb_entries, add_kb_entry, increment_kb_usage
 from groq import Groq
 import os
 import json
+import re
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -60,17 +61,21 @@ Return STRICTLY a JSON object with this structure (no markdown formatting, just 
 
     try:
         response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[{"role": "system", "content": prompt}],
+            model="groq/compound-mini",
+            messages=[{"role": "user", "content": prompt}],
             max_tokens=200,
             temperature=0.0
         )
         content = response.choices[0].message.content.strip()
+        content = re.sub(r'<think>.*?</think>', '', content, flags=re.DOTALL).strip()
         if content.startswith("```json"):
             content = content[7:-3].strip()
         elif content.startswith("```"):
             content = content[3:-3].strip()
             
+        json_match = re.search(r'\{.*\}', content, re.DOTALL)
+        if json_match:
+            content = json_match.group()
         result = json.loads(content)
         
         if result.get("is_kb") and result.get("kb_id"):
@@ -82,15 +87,17 @@ Return STRICTLY a JSON object with this structure (no markdown formatting, just 
         print("Knowledge Search Error:", e)
         try:
             fallback_res = client.chat.completions.create(
-                model="llama-3.3-70b-versatile",
+                model="groq/compound-mini",
                 messages=[{"role": "user", "content": req.query}],
                 max_tokens=150,
                 temperature=0.7
             )
+            answer = fallback_res.choices[0].message.content.strip()
+            answer = re.sub(r'<think>.*?</think>', '', answer, flags=re.DOTALL).strip()
             return {
                 "is_kb": False,
                 "kb_id": None,
-                "answer": fallback_res.choices[0].message.content.strip()
+                "answer": answer
             }
         except Exception as fallback_e:
             print("Fallback Knowledge Search Error:", fallback_e)

@@ -130,9 +130,333 @@
         "message": "I'm really sorry you're upset 😞. A human agent will help you right away and a ticket has been auto-created 🚀",
         "direction": "outbound",
         "timestamp": "2026-08-10T16:44:22.967875"
+      },
+      {
+        "id": "ab40ef81-0294-4a6d-aa29-f013c961a6fc",
+        "sender_type": "customer",
+        "text": "Hii",
+        "channel": "telegram",
+        "sentiment_score": 0.5,
+        "emotion": "neutral",
+        "timestamp": "2026-09-06T03:11:28.577480"
+      },
+      {
+        "id": "57019442-b714-49dc-a947-9ab76f41f79c",
+        "sender_type": "customer",
+        "text": "Hii",
+        "channel": "telegram",
+        "sentiment_score": 0.5,
+        "emotion": "neutral",
+        "timestamp": "2026-09-12T16:30:19.165238"
+      },
+      {
+        "id": "9234cf13-151b-4cdf-bfe4-724461aa6149",
+        "sender_type": "customer",
+        "text": "Hii",
+        "channel": "telegram",
+        "sentiment_score": 0.5,
+        "emotion": "neutral",
+        "timestamp": "2026-09-12T16:30:41.745971"
+      },
+      {
+        "id": "51ef9d7a-21ff-44cf-8962-36bed7208fe6",
+        "sender_type": "customer",
+        "text": "Hii",
+        "channel": "telegram",
+        "sentiment_score": 0.5,
+        "emotion": "neutral",
+        "timestamp": "2026-09-12T16:32:45.590872"
+      },
+      {
+        "id": "23ff3af9-dc98-419b-9a6d-bc371f2dc3dd",
+        "sender_type": "customer",
+        "text": "Hii",
+        "channel": "telegram",
+        "sentiment_score": 0.5,
+        "emotion": "neutral",
+        "timestamp": "2026-09-12T16:35:00.706552"
+      },
+      {
+        "id": "0f710d01-5e51-4a1f-989f-d372dce35d80",
+        "sender_type": "customer",
+        "text": "Hii",
+        "channel": "telegram",
+        "sentiment_score": 0.5,
+        "emotion": "neutral",
+        "timestamp": "2026-09-12T16:45:42.417429"
+      },
+      {
+        "id": "528cfb51-2a39-4c64-87ae-b8e283c39f28",
+        "sender_type": "customer",
+        "text": "Hii",
+        "channel": "telegram",
+        "sentiment_score": 0.5,
+        "emotion": "neutral",
+        "timestamp": "2026-09-13T18:51:27.689735"
+      },
+      {
+        "id": "ba2d7dbd-de11-47b8-b0c1-eeb4908d8fd7",
+        "sender_type": "bot",
+        "text": "<think>\nHere's a thinking process:\n\n1.  **Analyze User Input:** The user sent \"Hii\" (a simple greeting).\n2.  **Analyze Context/Constraints:**\n   - Role: Helpful customer service bot\n   - Query Type: Normal query\n   - Language: English only, but use the same script as the customer (customer used Latin script \"Hii\", so I'll use Latin/English)\n   - Channel: TELEGRAM\n   - Tone: Casual, concise, friendly, 2-3 sentences max, emojis acceptable, no formal greetings/sign-offs\n   - Emotional Tone: Neutral/normal -> helpful, clear, professional\n   - Urgency: LOW\n   - Intent: general_inquiry\n3.  **Identify Key Requirements:**\n   - Keep it under 2 sentences (constraint says \"Keep it under 2 sentences\" but also channel tone says \"no more than 2-3 sentences\". I'll stick to 1-2 sentences to be safe with the stricter constraint).\n   - Casual, friendly, Telegram style.\n   - No formal greetings/sign-offs.\n   - Respond to \"Hii\".\n4.  **Draft Generation (Mental):** Hey there! 👋 How can I help you today? Let me know what you need and I’ll get right on it. 😊\n   - Check constraints: 2 sentences. Casual/friendly. Telegram appropriate. No formal",
+        "channel": "telegram",
+        "sentiment_score": null,
+        "emotion": null,
+        "timestamp": "2026-09-13T18:51:29.110791"
+      },
+      {
+        "id": "5a2079ad-801b-4a68-b1be-06d09953fc79",
+        "sender_type": "customer",
+        "text": "Who is the nuzail",
+        "channel": "telegram",
+        "sentiment_score": 0.5,
+        "emotion": "neutral",
+        "timestamp": "2026-09-13T18:51:58.878169"
+      },
+      {
+        "id": "49459420-c2de-4165-986a-41730fb65170",
+        "sender_type": "bot",
+        "text": "<think>\nHere's a thinking process:\n\n1.  **Analyze User Input:**\n   - User asks: \"Who is the nuzail\"\n   - Context: Customer service bot, Telegram channel, casual/concise tone, max 2-3 sentences, friendly, emojis ok, no formal greetings/sign-offs.\n   - Language: English (same script as customer).\n   - Need to address the query helpfully but I don't have specific context about \"nuzail\". It sounds like a name, possibly a typo for a person, character, or internal team member.\n   - Since I'm a generic customer service bot without specific company knowledge, I should acknowledge the query, ask for clarification, and offer help.\n\n2.  **Apply Constraints:**\n   - Under 2 sentences (strict constraint from system prompt: \"Keep it under 2 sentences.\")\n   - Casual, concise, Telegram tone, friendly, emojis acceptable.\n   - No formal greetings/sign-offs.\n   - English only.\n\n3.  **Draft Generation (Mental):**\n   I'm not quite sure who \"Nuzail\" refers to, but if you let me know a bit more about the context, I'll gladly help you out! 😊 Please share any details you have and I'll get right on it. 🚀\n\n4.  **Check Constraints:**\n   - Under 2 sentences? Yes, exactly 2. (",
+        "channel": "telegram",
+        "sentiment_score": null,
+        "emotion": null,
+        "timestamp": "2026-09-13T18:52:01.876238"
+      },
+      {
+        "id": "af6e6e96-6f72-4342-958c-d6bf8d3bb9f3",
+        "sender_type": "customer",
+        "text": "Hii",
+        "channel": "telegram",
+        "sentiment_score": 0.5,
+        "emotion": "neutral",
+        "timestamp": "2026-09-14T22:13:59.218893"
+      },
+      {
+        "id": "e79f88ff-13fa-4e3d-9543-da174325c2d8",
+        "sender_type": "bot",
+        "text": "<think>\nThe user said \"Hii\". This is a simple greeting.\nI need to respond helpfully and professionally, but keeping the Telegram tone constraints: casual, concise, max 2-3 sentences, friendly, emojis ok, no formal greetings/sign-offs.\nAlso, the system prompt says \"Keep it under 2 sentences.\" (strict constraint).\nLanguage: English (same script as customer).\nContext: Normal query, neutral emotion, low urgency.\n\nDraft: Hey there! 👋 How can I help you out today? Let me know what you need and I'll get right on it. 😊\nCheck constraints: 2 sentences. Casual/friendly. Telegram style. No formal greetings/sign-offs. English. Under 2 sentences.\nMatches perfectly. Proceed. \nWait, \"under 2 sentences\" usually means 1 sentence or less, but often means \"max 2\". I will stick to 2 sentences to be safe, or just 1 to strictly satisfy \"under 2\". Actually, \"under 2 sentences\" strictly means 1 sentence. I'll make it 1 sentence to be strictly compliant, or just keep it to 2 as the channel tone says \"no more than 2-3 sentences\". I'll stick to 2.\nLet's refine: \"Hey there! 👋 What can I help you with today? 😊\" (2 sentences)\nOr: \"Hey! 👋 How can I help",
+        "channel": "telegram",
+        "sentiment_score": null,
+        "emotion": null,
+        "timestamp": "2026-09-14T22:14:19.623082"
+      },
+      {
+        "id": "65be3303-fc16-4956-bff7-75dde79133c6",
+        "sender_type": "customer",
+        "text": "Hii",
+        "channel": "telegram",
+        "sentiment_score": 0.7,
+        "emotion": "neutral",
+        "timestamp": "2026-09-15T03:27:50.153216"
+      },
+      {
+        "id": "dafd3dbd-edb2-458c-b0d2-8348acde426b",
+        "sender_type": "customer",
+        "text": "Who is nuzail",
+        "channel": "telegram",
+        "sentiment_score": 0.5,
+        "emotion": "neutral",
+        "timestamp": "2026-09-15T03:28:57.389674"
+      },
+      {
+        "id": "c8742039-f63d-4e30-83c3-813c0e443cd5",
+        "sender_type": "bot",
+        "text": "daksh roommate\n",
+        "channel": "telegram",
+        "sentiment_score": null,
+        "emotion": null,
+        "timestamp": "2026-09-15T03:28:58.551608"
+      },
+      {
+        "id": "bf3f33ff-9ac4-4540-936c-85aab97a72b9",
+        "sender_type": "customer",
+        "text": "Kyaa kar rahaa h",
+        "channel": "telegram",
+        "sentiment_score": 0.5,
+        "emotion": "curious",
+        "timestamp": "2026-09-15T03:29:25.357571"
+      },
+      {
+        "id": "9a19cd82-3d11-405b-b0ab-da1859db67cc",
+        "sender_type": "bot",
+        "text": "Just here, ready to help you out! 😊",
+        "channel": "telegram",
+        "sentiment_score": null,
+        "emotion": null,
+        "timestamp": "2026-09-15T03:29:27.940390"
+      },
+      {
+        "id": "03fdb5f1-e284-4e73-8c1a-35f921a2d6e9",
+        "sender_type": "customer",
+        "text": "Hii",
+        "channel": "telegram",
+        "sentiment_score": 0.8,
+        "emotion": "friendly",
+        "timestamp": "2026-09-15T03:29:41.638535"
+      },
+      {
+        "id": "7bebe855-bb24-4491-a23f-c79ad4ddbf3e",
+        "sender_type": "bot",
+        "text": "Thanks for being awesome—here’s a special 20% discount on your next upgrade! 🎉",
+        "channel": "telegram",
+        "sentiment_score": null,
+        "emotion": null,
+        "timestamp": "2026-09-15T03:29:43.510182"
+      },
+      {
+        "id": "f25a9854-e174-406b-93ba-ca86d1f88c96",
+        "sender_type": "customer",
+        "text": "Mere peth m dard ho rahaa hai",
+        "channel": "telegram",
+        "sentiment_score": 0.2,
+        "emotion": "frustrated",
+        "timestamp": "2026-09-16T17:48:45.164686"
+      },
+      {
+        "id": "a44f03ca-9484-4f34-b926-9fad1fe6f68b",
+        "sender_type": "bot",
+        "text": "बहुत खेद है, हम समझते हैं कि आपके पेट में दर्द है; एक मानव एजेंट जल्द ही मदद करेगा और आपका टिकट बन गया है। 🙏",
+        "channel": "telegram",
+        "sentiment_score": null,
+        "emotion": null,
+        "timestamp": "2026-09-16T17:48:50.164192"
+      },
+      {
+        "id": "675a5cd9-fb71-48b1-8018-8fd5ecc8d517",
+        "sender_type": "customer",
+        "text": "Meri behan ko gunde chhed rahe hai",
+        "channel": "telegram",
+        "sentiment_score": 0.1,
+        "emotion": "frustrated",
+        "timestamp": "2026-09-16T17:49:36.115900"
+      },
+      {
+        "id": "de4e46e4-6255-420f-ad7f-bb49ea7c6870",
+        "sender_type": "bot",
+        "text": "हम बहुत क्षमा चाहते हैं, हम समझते हैं कि आपकी बहन को गंदे लोग परेशान कर रहे हैं; एक मानव एजेंट जल्द ही मदद करेगा और आपका टिकट बन गया है। 🙏",
+        "channel": "telegram",
+        "sentiment_score": null,
+        "emotion": null,
+        "timestamp": "2026-09-16T17:49:41.683661"
+      },
+      {
+        "id": "5166ba77-0167-40a3-87aa-3d9910be853c",
+        "sender_type": "customer",
+        "text": "Mera roommate gay niklaa",
+        "channel": "telegram",
+        "sentiment_score": 0.5,
+        "emotion": "surprised",
+        "timestamp": "2026-09-16T17:50:19.305758"
+      },
+      {
+        "id": "f9c07e53-2983-436e-b11f-35f28f39b91f",
+        "sender_type": "customer",
+        "text": "Hii",
+        "channel": "telegram",
+        "sentiment_score": 0.7,
+        "emotion": "friendly",
+        "timestamp": "2026-09-16T17:51:01.971281"
+      },
+      {
+        "id": "897648a0-45be-4887-8a9a-e4c95212bc04",
+        "sender_type": "bot",
+        "text": "Hey, it's normal to feel surprised—try having an open, respectful chat with your roommate. If you need any more support, just let me know! 😊",
+        "channel": "telegram",
+        "sentiment_score": null,
+        "emotion": null,
+        "timestamp": "2026-09-16T17:51:04.871514"
+      },
+      {
+        "id": "f8a6e679-89c6-44ff-836b-13b37dc66304",
+        "sender_type": "customer",
+        "text": "Mera roommate gay niklaa",
+        "channel": "telegram",
+        "sentiment_score": 0.5,
+        "emotion": "neutral",
+        "timestamp": "2026-09-16T17:51:19.523184"
+      },
+      {
+        "id": "a31b0e32-8951-487b-a0f1-50342e0b61eb",
+        "sender_type": "bot",
+        "text": "[TELEGRAM] समझ गया—आप दोनों के बीच खुली और सम्मानजनक बातचीत रखना सबसे अच्छा रहेगा। अगर कोई मदद चाहिए तो बताइए! 😊",
+        "channel": "telegram",
+        "sentiment_score": null,
+        "emotion": null,
+        "timestamp": "2026-09-16T17:51:22.324966"
+      },
+      {
+        "id": "b3d1d917-6e68-4c49-8f09-5c672c0f1983",
+        "sender_type": "customer",
+        "text": "Aap mere dost banoge",
+        "channel": "telegram",
+        "sentiment_score": 0.85,
+        "emotion": "friendly",
+        "timestamp": "2026-09-16T17:52:05.373986"
+      },
+      {
+        "id": "a13e8927-e5a5-4f43-8e50-e7828f0c6011",
+        "sender_type": "bot",
+        "text": "बिलकुल, मैं आपका दोस्त बनना पसंद करूंगा! 😊",
+        "channel": "telegram",
+        "sentiment_score": null,
+        "emotion": null,
+        "timestamp": "2026-09-16T17:52:10.945107"
+      },
+      {
+        "id": "abc908f1-5c6a-4045-bf92-615c10723c02",
+        "sender_type": "customer",
+        "text": "Ticket generate karo random",
+        "channel": "telegram",
+        "sentiment_score": 0.6,
+        "emotion": "neutral",
+        "timestamp": "2026-09-16T17:52:53.519040"
+      },
+      {
+        "id": "815f9b9a-c443-4938-b2b6-eebacb7296e2",
+        "sender_type": "bot",
+        "text": "[TELEGRAM] माफ़ कीजिए, मैं टिकट नहीं बना सकता, लेकिन मैं आपकी समस्या में मदद करने के लिए यहाँ हूँ—बताइए क्या चाहिए! 😊",
+        "channel": "telegram",
+        "sentiment_score": null,
+        "emotion": null,
+        "timestamp": "2026-09-16T17:52:55.829541"
+      },
+      {
+        "id": "e3b69936-5c39-48a7-ba4e-f3316a7821df",
+        "sender_type": "customer",
+        "text": "Mera order nahi aayaa bc",
+        "channel": "telegram",
+        "sentiment_score": 0.2,
+        "emotion": "frustrated",
+        "timestamp": "2026-09-16T17:53:22.003807"
+      },
+      {
+        "id": "5632b879-b910-40a8-ba29-08fefd3bd7c5",
+        "sender_type": "bot",
+        "text": "Standard shipping takes 3-5 business days. Expedited takes 1-2 business days.",
+        "channel": "telegram",
+        "sentiment_score": null,
+        "emotion": null,
+        "timestamp": "2026-09-16T17:53:26.324600"
+      },
+      {
+        "id": "9682a3e7-fad2-4ac1-b673-c054891c6bb7",
+        "sender_type": "customer",
+        "text": "Okk",
+        "channel": "telegram",
+        "sentiment_score": 0.5,
+        "emotion": "neutral",
+        "timestamp": "2026-09-16T17:53:51.227879"
+      },
+      {
+        "id": "19b4daee-d953-4a0c-8c74-0c1f38c1f1c8",
+        "sender_type": "bot",
+        "text": "[TELEGRAM] Got it! Let me know if you need anything else. 😊",
+        "channel": "telegram",
+        "sentiment_score": null,
+        "emotion": null,
+        "timestamp": "2026-09-16T17:53:53.300183"
       }
     ],
-    "last_seen": "2026-08-10T16:44:22.968909"
+    "last_seen": "2026-09-16T17:53:53.313990"
   },
   "Nr_111112": {
     "first_seen": "2026-08-10T14:59:36.559133",

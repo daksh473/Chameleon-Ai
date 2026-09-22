@@ -21,6 +21,15 @@ from database import save_conversation, create_ticket
 from caspian_sdk import CommClient
 from dotenv import load_dotenv
 
+# Multi-tenant PostgreSQL Support Schema Integration
+from db.session import SessionLocal
+from core.tenancy import get_or_create_default_tenant
+from services.support_service import (
+    create_support_ticket,
+    create_or_update_customer_for_support,
+    save_support_conversation_message,
+)
+
 # ── New Intelligence Modules ──
 from routing_brain import route_message
 from memory_store import (
@@ -215,6 +224,70 @@ def handle_message(message):
         sender_name=customer_name
     )
     _log_stage("DATABASE", "Conversation saved to conversations table")
+
+    # ── STAGE 5.1: Multi-tenant PostgreSQL Support Schema Sync ──
+    try:
+        with SessionLocal() as db:
+            tenant = get_or_create_default_tenant(db)
+            tenant_id = tenant.id
+            create_or_update_customer_for_support(
+                db=db,
+                tenant_id=tenant_id,
+                name=customer_name,
+                email=user_id if "@" in user_id else None,
+                channel=channel,
+                sentiment_score=score,
+            )
+
+            pg_ticket = None
+            if routing_action in ("escalate", "queue"):
+                issue_text = text if routing_action == "escalate" else f"[QUEUED P{routing_priority}] {text}"
+                pg_ticket = create_support_ticket(
+                    db=db,
+                    tenant_id=tenant_id,
+                    customer_name=customer_name,
+                    issue=issue_text,
+                    score=score,
+                    channel=channel,
+                    source=f"caspian-{channel}",
+                    customer_email=user_id if "@" in user_id else None,
+                )
+                _log_stage("PG_SUPPORT", f"Ticket #{pg_ticket.ticket_number or pg_ticket.id[:8]} created in Postgres (tenant: {tenant.name})")
+
+            # Save inbound message to multi-tenant schema
+            save_support_conversation_message(
+                db=db,
+                tenant_id=tenant_id,
+                session_id=f"caspian-{channel}-{user_id}",
+                role="user",
+                message=text,
+                score=score,
+                emotion=emotion,
+                action=action,
+                channel=f"caspian-{channel}",
+                source="inbound",
+                sender_id=user_id,
+                sender_name=customer_name,
+                ticket_id=pg_ticket.id if pg_ticket else None,
+            )
+
+            # Save outbound reply if generated
+            if reply_text:
+                save_support_conversation_message(
+                    db=db,
+                    tenant_id=tenant_id,
+                    session_id=f"caspian-{channel}-{user_id}",
+                    role="assistant",
+                    message=reply_text,
+                    score=score,
+                    emotion=emotion,
+                    action=action,
+                    channel=f"caspian-{channel}",
+                    source="ai_generated",
+                    ticket_id=pg_ticket.id if pg_ticket else None,
+                )
+    except Exception as pg_err:
+        _log_stage("PG_WARN", f"PostgreSQL multi-tenant persistence error: {pg_err}")
 
     # Save the outbound reply to cross-channel memory
     if reply_text:

@@ -62,16 +62,20 @@ Rules:
 
     try:
         response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="groq/compound-mini",
             messages=[{"role": "user", "content": prompt}],
             max_tokens=150,
             temperature=0.1
         )
         text = response.choices[0].message.content.strip()
+        text = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL).strip()
         if text.startswith("```"):
             text = text.split("```")[1]
             if text.startswith("json"):
                 text = text[4:]
+        json_match = re.search(r'\{.*\}', text, re.DOTALL)
+        if json_match:
+            text = json_match.group()
         data = json.loads(text)
         for key in ("name", "email", "phone", "company"):
             val = data.get(key)

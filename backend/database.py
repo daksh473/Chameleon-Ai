@@ -1198,7 +1198,7 @@ def create_agent(name, email, specialization="general", max_conversations=3):
     conn.close()
     return aid
 
-def save_conversation_message(handoff_id: int, sender_type: str, text: str, channel: str):
+def save_handoff_message(handoff_id: int, sender_type: str, text: str, channel: str):
     """
     Appends a new message directly to the JSON conversation_history column of a handoff.
     Uses the unified schema format.

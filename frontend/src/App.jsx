@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import {
   Plus, ArrowUp, MessageSquare, BarChart3, Settings,
   CircleDot, AlertTriangle, X, Clock, Wifi, Inbox, LayoutDashboard, Database, Mic, MicOff, Mail, Users, Headset,
-  Volume2, VolumeX, Brain, ChevronDown, ChevronUp, ExternalLink, Sparkles, FileSpreadsheet, Send
+  Volume2, VolumeX, Brain, ChevronDown, ChevronUp, ExternalLink, Sparkles, FileSpreadsheet, Send, Receipt, Package, CheckSquare, Activity, BookOpen
 } from "lucide-react";
 import "./App.css";
 import SettingsView from "./SettingsView";
@@ -13,8 +13,13 @@ import PredictionsView from "./components/PredictionsView";
 import EmailView from "./components/EmailView";
 import TelegramView from "./components/TelegramView";
 import CrmView from "./components/CrmView";
+import BillingView from "./components/BillingView";
+import InventoryView from "./components/InventoryView";
+import TasksView from "./components/TasksView";
+import TenantSwitcher from "./components/TenantSwitcher";
 import AgentConsole from "./components/AgentConsole";
 import ExcelView from "./components/ExcelView";
+import DashboardAnalytics from "./components/DashboardAnalytics";
 // Landing page removed
 
 const API = "http://localhost:8000";
@@ -112,7 +117,10 @@ const LANG = {
       predictions: "Predictions",
       excel: "Excel",
       knowledge: "Knowledge Base",
-      landing: "Landing Page"
+      landing: "Landing Page",
+      billing: "Billing",
+      inventory: "Inventory",
+      tasks: "Tasks"
     },
   },
   hi: {
@@ -149,7 +157,10 @@ const LANG = {
       inbox: "इनबॉक्स",
       agentDashboard: "एजेंट डैशबोर्ड",
       analytics: "एनालिटिक्स",
-      knowledge: "ज्ञानकोष"
+      knowledge: "ज्ञानकोष",
+      billing: "बिलिंग",
+      inventory: "इन्वेंटरी",
+      tasks: "कार्य (Tasks)"
     },
   }
 };
@@ -207,33 +218,49 @@ function ChameleonAvatar() {
 }
 
 /* ─────────────────────────────────────────────
+   NAVIGATION ITEMS DEFINITION
+   ───────────────────────────────────────────── */
+const MAIN_NAV_ITEMS = [
+  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { id: "crm", label: "CRM", icon: Users },
+  { id: "billing", label: "Billing", icon: Receipt },
+  { id: "inventory", label: "Inventory", icon: Package },
+  { id: "tasks", label: "Tasks", icon: CheckSquare },
+  { id: "tickets", label: "Tickets", icon: Inbox },
+  { id: "analytics", label: "Analytics", icon: BarChart3 },
+  { id: "predictions", label: "Predictions", icon: Sparkles },
+  { id: "excel", label: "Excel", icon: FileSpreadsheet },
+];
+
+const CUSTOMER_CARE_ITEMS = [
+  { id: "telegram", label: "Telegram", icon: Send, badge: "Bot" },
+  { id: "email", label: "Email", icon: Mail, badge: "Caspian" },
+  { id: "agentConsole", label: "Agent Console", icon: Headset },
+  { id: "knowledge", label: "Knowledge Base", icon: BookOpen },
+];
+
+/* ─────────────────────────────────────────────
    MAIN APP
    ───────────────────────────────────────────── */
 export default function App() {
   const [lang, setLang]               = useState("en");
   const [msgs, setMsgs]               = useState([]);
-  const [graphData, setGraph]         = useState([]);
-  const [input, setInput]             = useState("");
   const [status, setStatus]           = useState("connecting");
   const [lastEmotion, setLastEmotion] = useState("neutral");
-  const [alert, setAlert]             = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [activeView, setActiveView]   = useState("chat");
-  const [activeTicketId, setActiveTicketId] = useState(null);
-  const [channelFilter, setChannelFilter] = useState("All Channels");
-
-  // Voice + Memory state
-  const [voiceOn, setVoiceOn]         = useState(false);
-  const [recording, setRecording]     = useState(false);
-  const [recordTime, setRecordTime]   = useState(0);
-  const [speaking, setSpeaking]       = useState(false);
-  const [micError, setMicError]       = useState(null);
+  const [activeView, setActiveView]   = useState("dashboard");
+  const [customerCareOpen, setCustomerCareOpen] = useState(true);
   const [toast, setToast]             = useState(null);
   const [customerProfile, setCustomerProfile] = useState(null);
   const [memoryPanelOpen, setMemoryPanelOpen] = useState(true);
-  const [smartGreeting, setSmartGreeting] = useState(null);
   const [customerId, setCustomerId]   = useState(null);
-  const [waveBars, setWaveBars]       = useState(Array(12).fill(4));
+
+  // Auto-expand Customer Care section if an active item belongs to it
+  useEffect(() => {
+    if (CUSTOMER_CARE_ITEMS.some((item) => item.id === activeView)) {
+      setCustomerCareOpen(true);
+    }
+  }, [activeView]);
 
   // System Metrics State
   const [sessionStart] = useState(Date.now());
@@ -251,7 +278,7 @@ export default function App() {
     return () => clearInterval(interval);
   }, [sessionStart]);
 
-  // Latency Simulator Effect
+  // Latency Simulator & History Effect
   useEffect(() => {
     const fetchHistory = async () => {
       try {
@@ -259,7 +286,7 @@ export default function App() {
         if (res.ok) {
           const data = await res.json();
           if (data && data.length > 0) {
-            setMsgs(data.slice(-100)); // Load up to 100 recent
+            setMsgs(data.slice(-50));
           }
         }
       } catch (e) {
@@ -288,21 +315,9 @@ export default function App() {
     };
   }, []);
 
-  const wsRef    = useRef(null);
-  const idxRef   = useRef(0);
-  const chatEnd  = useRef(null);
-  const inputRef = useRef(null);
-  const mediaRecRef = useRef(null);
-  const chunksRef = useRef([]);
-  const timerRef = useRef(null);
-  const waveAnimRef = useRef(null);
-  const recordTimeRef = useRef(0);
-  const voiceOnRef = useRef(voiceOn);
-  const langRef = useRef(lang);
+  const wsRef  = useRef(null);
+  const idxRef = useRef(0);
   const T = LANG[lang];
-
-  useEffect(() => { voiceOnRef.current = voiceOn; }, [voiceOn]);
-  useEffect(() => { langRef.current = lang; }, [lang]);
 
   const showToast = useCallback((msg) => {
     setToast(msg);
@@ -318,48 +333,37 @@ export default function App() {
     } catch (e) { console.error(e); }
   }, []);
 
-  /* ── WebSocket ── */
+  /* ── WebSocket for live system telemetry ── */
   useEffect(() => {
     const connect = () => {
       const ws = new WebSocket("ws://localhost:8000/ws");
       wsRef.current = ws;
-      ws.onopen  = () => { console.log("WebSocket connected."); setStatus("live"); };
-      ws.onclose = (e) => { console.log("WebSocket closed:", e.reason); setStatus("disconnected"); setTimeout(connect, 3000); };
+      ws.onopen  = () => { setStatus("live"); };
+      ws.onclose = () => { setStatus("disconnected"); setTimeout(connect, 3000); };
       ws.onerror = (e) => { console.error("WebSocket error:", e); ws.close(); };
       ws.onmessage = (e) => {
-        const data = JSON.parse(e.data);
+        try {
+          const data = JSON.parse(e.data);
+          if (data.type === "greeting") {
+            if (data.profile) setCustomerProfile(data.profile);
+            if (data.profile?.customer_identifier) setCustomerId(data.profile.customer_identifier);
+            return;
+          }
+          idxRef.current += 1;
+          const point = { ...data, index: idxRef.current, ts: Date.now() };
+          if (data.emotion) setLastEmotion(data.emotion);
+          setMsgs(prev => [...prev, point].slice(-50));
 
-        if (data.type === "greeting") {
-          setSmartGreeting(data.message);
-          if (data.profile) setCustomerProfile(data.profile);
-          if (data.profile?.customer_identifier) setCustomerId(data.profile.customer_identifier);
-          return;
-        }
+          if (data.customer_identifier) {
+            setCustomerId(data.customer_identifier);
+            fetchProfile(data.customer_identifier);
+          }
 
-        idxRef.current += 1;
-        const point = { ...data, index: idxRef.current, ts: Date.now() };
-        setLastEmotion(data.emotion);
-        setMsgs(prev => [...prev, point].slice(-100));
-        setGraph(prev => [...prev, point].slice(-30));
-
-        if (data.customer_identifier) {
-          setCustomerId(data.customer_identifier);
-          fetchProfile(data.customer_identifier);
-        }
-
-        if (data.ticket_id) {
-          showToast(`Ticket #${data.ticket_id} created from voice message`);
-        }
-
-        if (voiceOnRef.current && data.reply) {
-          setSpeaking(true);
-          const utter = speakText(data.reply, data.language || langRef.current);
-          if (utter) utter.onend = () => setSpeaking(false);
-          else setSpeaking(false);
-        }
-
-        if (data.action === "ESCALATE") {
-          setAlert(data);
+          if (data.ticket_id) {
+            showToast(`Support Ticket #${data.ticket_id} updated`);
+          }
+        } catch (err) {
+          console.error("WS message parse error:", err);
         }
       };
     };
@@ -367,118 +371,17 @@ export default function App() {
     return () => wsRef.current?.close();
   }, [fetchProfile, showToast]);
 
-  useEffect(() => () => {
-    if (timerRef.current) clearInterval(timerRef.current);
-    if (waveAnimRef.current) cancelAnimationFrame(waveAnimRef.current);
-  }, []);
-
-  const sendWs = useCallback((payload) => {
-    if (wsRef.current?.readyState !== WebSocket.OPEN) return;
-    const text = typeof payload === "string" ? payload : payload.text;
-    if (!text?.trim()) return;
-    if (typeof payload === "string") {
-      wsRef.current.send(text.trim());
-    } else {
-      wsRef.current.send(JSON.stringify(payload));
-    }
-  }, []);
-
-  const send = useCallback(() => {
-    if (!input.trim()) return;
-    sendWs(input.trim());
-    setInput("");
-    inputRef.current?.focus();
-  }, [input, sendWs]);
-
-  const transcribeAndSend = useCallback(async (blob, duration) => {
-    try {
-      const formData = new FormData();
-      formData.append("file", blob, "recording.webm");
-      const res = await fetch(`${API}/voice/transcribe`, { method: "POST", body: formData });
-      const data = await res.json();
-      if (data.transcript?.trim()) {
-        setInput(data.transcript.trim());
-        sendWs({
-          text: data.transcript.trim(),
-          source: "voice",
-          audio_duration: data.audio_duration || duration,
-          language: data.language || "en"
-        });
-        setInput("");
-      } else {
-        setMicError("Couldn't understand. Please try again.");
-      }
-    } catch (err) {
-      console.error(err);
-      setMicError("Transcription failed.");
-    }
-  }, [sendWs]);
-
-  const startRecording = async () => {
-    setMicError(null);
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mr = new MediaRecorder(stream, { mimeType: "audio/webm" });
-      chunksRef.current = [];
-      mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
-      mr.onstop = async () => {
-        stream.getTracks().forEach(t => t.stop());
-        const blob = new Blob(chunksRef.current, { type: "audio/webm" });
-        await transcribeAndSend(blob, recordTimeRef.current);
-      };
-      mr.start();
-      mediaRecRef.current = mr;
-      setRecording(true);
-      setRecordTime(0);
-      recordTimeRef.current = 0;
-      timerRef.current = setInterval(() => {
-        recordTimeRef.current += 1;
-        setRecordTime(recordTimeRef.current);
-      }, 1000);
-      const animate = () => {
-        setWaveBars(Array.from({ length: 12 }, () => 4 + Math.random() * 20));
-        waveAnimRef.current = requestAnimationFrame(animate);
-      };
-      animate();
-    } catch (err) {
-      setMicError("Microphone access denied.");
-    }
-  };
-
-  const stopRecording = () => {
-    if (mediaRecRef.current?.state !== "inactive") mediaRecRef.current?.stop();
-    setRecording(false);
-    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
-    if (waveAnimRef.current) { cancelAnimationFrame(waveAnimRef.current); waveAnimRef.current = null; }
-  };
-
-  const fmtTime = (s) => `${Math.floor(s / 60).toString().padStart(2, "0")}:${(s % 60).toString().padStart(2, "0")}`;
-
-  useEffect(() => {
-    chatEnd.current?.scrollIntoView({ behavior: "smooth" });
-  }, [msgs]);
-
-  useEffect(() => {
-    chatEnd.current?.scrollIntoView({ behavior: "smooth" });
-  }, [msgs]);
-
-  const stats = {
-    total:     msgs.length,
-    escalated: msgs.filter(m => m.action === "ESCALATE").length,
-    upsells:   msgs.filter(m => m.action === "UPSELL").length,
-  };
-
   const statusColor = status === "live" ? "#30A46C" : status === "connecting" ? "#F5A623" : "#E5484D";
 
   const getIntensity = (emotion) => {
     switch (emotion) {
       case "angry":
-      case "frustrated": return 9; // High intensity, red
-      case "curious": return 5; // Yellow
+      case "frustrated": return 9;
+      case "curious": return 5;
       case "happy":
-      case "grateful": return 2; // Green
-      case "neutral": return 0; // Green (baseline)
-      case "uninterested": return -8; // Blue (detached)
+      case "grateful": return 2;
+      case "neutral": return 0;
+      case "uninterested": return -8;
       default: return 0;
     }
   };
@@ -505,70 +408,87 @@ export default function App() {
           <span className="sidebar-brand-text">{T.brand}</span>
         </div>
 
-        {/* New Chat */}
-        <button className="sidebar-new-btn" onClick={() => { setActiveView("chat"); setMsgs([]); setGraph([]); idxRef.current = 0; }}>
-          <Plus size={15} />
-          <span>{T.sidebar.newChat}</span>
+        {/* Analytics Dashboard Quick Link */}
+        <button className="sidebar-new-btn" onClick={() => setActiveView("dashboard")}>
+          <LayoutDashboard size={15} />
+          <span>Analytics Overview</span>
         </button>
 
         {/* Nav Items */}
         <div className="sidebar-nav mt-4 flex flex-col gap-1 px-3">
-          <button className={`sidebar-nav-btn ${activeView === "dashboard" ? "active" : ""}`} onClick={() => setActiveView("dashboard")}>
-            <LayoutDashboard size={15} />
-            <span>{T.sidebar.dashboard || "Dashboard"}</span>
+          {MAIN_NAV_ITEMS.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeView === item.id;
+            return (
+              <button
+                key={item.id}
+                className={`sidebar-nav-btn ${isActive ? "active" : ""}`}
+                onClick={() => setActiveView(item.id)}
+              >
+                <Icon size={15} />
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
+
+          {/* ── Collapsible Section: Customer Care ── */}
+          <button
+            type="button"
+            className="sidebar-group-header"
+            onClick={() => setCustomerCareOpen(!customerCareOpen)}
+            title="Toggle Customer Care channels"
+          >
+            <div className="sidebar-group-title">
+              <Headset size={14} color="#10b981" />
+              <span>Customer Care</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <span className="sidebar-group-badge">{CUSTOMER_CARE_ITEMS.length}</span>
+              {customerCareOpen ? <ChevronUp size={13} color="#94a3b8" /> : <ChevronDown size={13} color="#94a3b8" />}
+            </div>
           </button>
-          <button className={`sidebar-nav-btn ${activeView === 'email' ? 'active' : ''}`} onClick={() => setActiveView('email')}>
-            <Mail size={15} />
-            <span>{T.sidebar.email || "Email"}</span>
-          </button>
-          <button className={`sidebar-nav-btn ${activeView === 'telegram' ? 'active' : ''}`} onClick={() => setActiveView('telegram')}>
-            <Send size={15} />
-            <span>Telegram</span>
-          </button>
-          <button className={`sidebar-nav-btn ${activeView === 'crm' ? 'active' : ''}`} onClick={() => setActiveView('crm')}>
-            <Users size={15} />
-            <span>CRM</span>
-          </button>
-          <button className={`sidebar-nav-btn ${activeView === 'agentConsole' ? 'active' : ''}`} onClick={() => setActiveView('agentConsole')}>
-            <Headset size={15} />
-            <span>Agent Console</span>
-          </button>
-          <button className={`sidebar-nav-btn ${activeView === "tickets" ? "active" : ""}`} onClick={() => setActiveView("tickets")}>
-            <Inbox size={15} />
-            <span>{T.sidebar.tickets || "Tickets"}</span>
-          </button>
-          <button className={`sidebar-nav-btn ${activeView === "analytics" ? "active" : ""}`} onClick={() => setActiveView("analytics")}>
-            <BarChart3 size={15} />
-            <span>{T.sidebar.analytics || "Analytics"}</span>
-          </button>
-          <button className={`sidebar-nav-btn ${activeView === "predictions" ? "active" : ""}`} onClick={() => setActiveView("predictions")}>
-            <Sparkles size={15} />
-            <span>{T.sidebar.predictions || "Predictions"}</span>
-          </button>
-          <button className={`sidebar-nav-btn ${activeView === "excel" ? "active" : ""}`} onClick={() => setActiveView("excel")}>
-            <FileSpreadsheet size={15} />
-            <span>{T.sidebar.excel || "Excel"}</span>
-          </button>
-          <button className={`sidebar-nav-btn ${activeView === "knowledge" ? "active" : ""}`} onClick={() => setActiveView("knowledge")}>
-            <Database size={15} />
-            <span>{T.sidebar.knowledge || "Knowledge Base"}</span>
-          </button>
+
+          {customerCareOpen && (
+            <div className="sidebar-group-items">
+              {CUSTOMER_CARE_ITEMS.map((item) => {
+                const Icon = item.icon;
+                const isActive = activeView === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    className={`sidebar-nav-btn nested ${isActive ? "active" : ""}`}
+                    onClick={() => setActiveView(item.id)}
+                  >
+                    <Icon size={14} />
+                    <span>{item.label}</span>
+                    {item.badge && (
+                      <span className="sidebar-badge-pill">{item.badge}</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Recent list */}
-        <div className="sidebar-section-label">{T.sidebar.recent}</div>
+        <div className="sidebar-section-label">LIVE TELEMETRY</div>
         <div className="sidebar-list">
           {msgs.length > 0 ? (
-            (Array.isArray(msgs) ? [...msgs] : []).reverse().slice(0, 12).map((m, i) => (
-              <div key={i} className="sidebar-item slide-in" style={{ animationDelay: `${i * 30}ms` }} onClick={() => setActiveView("chat")}>
-                <MessageSquare size={13} className="sidebar-item-icon" />
+            (Array.isArray(msgs) ? [...msgs] : []).reverse().slice(0, 8).map((m, i) => (
+              <div key={i} className="sidebar-item slide-in" style={{ animationDelay: `${i * 30}ms` }} onClick={() => setActiveView("dashboard")}>
+                <Activity size={13} className="sidebar-item-icon" />
                 <span className="sidebar-item-text">
-                  {m.message?.slice(0, 32)}{m.message?.length > 32 ? "…" : ""}
+                  {m.message || m.reply || "Telemetry Event"}
                 </span>
               </div>
             ))
           ) : (
-            <div className="sidebar-empty">{T.empty}</div>
+            <div className="sidebar-empty">
+              <span>All systems active</span>
+              <br />
+              <small style={{ color: "#10b981", fontSize: "11px" }}>● Live Telemetry</small>
+            </div>
           )}
         </div>
 
@@ -615,7 +535,7 @@ export default function App() {
       <main className="main-area">
 
         {/* ── Top bar ── */}
-        <header className="topbar">
+        <header className="topbar" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div className="topbar-left">
             <ChameleonAvatar />
             <div className="topbar-status">
@@ -624,6 +544,9 @@ export default function App() {
                 {status === "live" ? T.live : status === "connecting" ? T.connecting : T.disconnected}
               </span>
             </div>
+          </div>
+          <div className="topbar-right" style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <TenantSwitcher />
           </div>
         </header>
 
@@ -642,6 +565,12 @@ export default function App() {
             <TelegramView setActiveTab={setActiveView} />
           ) : activeView === "crm" ? (
             <CrmView />
+          ) : activeView === "billing" ? (
+            <BillingView />
+          ) : activeView === "inventory" ? (
+            <InventoryView />
+          ) : activeView === "tasks" ? (
+            <TasksView />
           ) : activeView === "analytics" ? (
             <AnalyticsView />
           ) : activeView === "predictions" ? (
@@ -652,232 +581,10 @@ export default function App() {
             <ExcelView />
           ) : (
             <>
-              {/* ── LEFT PANE: Chat Workspace ── */}
-              <div className="chat-pane">
-                
-            <div className="content-scroll">
-
-              {/* Escalation Alert */}
-              {alert && (
-                <div className="alert-overlay">
-                  <div className="alert-card alert-enter">
-                    <div className="alert-header">
-                      <AlertTriangle size={20} color="#E5484D" />
-                      <div>
-                        <div className="alert-title">{T.alertTitle}</div>
-                        <div className="alert-sub">{T.alertSub}</div>
-                      </div>
-                      <button className="alert-close" onClick={() => setAlert(null)}>
-                        <X size={16} />
-                      </button>
-                    </div>
-                    <div className="alert-body">
-                      <div className="alert-message">"{alert.message}"</div>
-                      <div className="alert-meta">
-                        <span className="alert-meta-tag">
-                          {alert.emotion?.toUpperCase()}
-                        </span>
-                        <span className="alert-meta-tag alert-meta-score" style={{ color: scoreColor(alert.score) }}>
-                          {alert.score?.toFixed(2)}
-                        </span>
-                      </div>
-                      {alert.reply && (
-                        <div className="alert-reply">{alert.reply}</div>
-                      )}
-                    </div>
-                    <button className="alert-ack-btn" onClick={() => setAlert(null)}>
-                      {T.acknowledge}
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Empty state greeting */}
-              {msgs.length === 0 && (
-                <div className="greeting-container fade-in flex flex-col items-center justify-center text-center">
-                  <img 
-                    src="/welcome-brand.png" 
-                    alt="Chameleon AI Logo" 
-                    className="w-full max-w-[320px] h-auto mx-auto mb-6 block object-contain" 
-                    onError={(e) => { e.target.style.display = 'none'; }}
-                  />
-                  <h1 className="greeting-title mt-6 mb-2">{T.greeting}</h1>
-                  {smartGreeting && (
-                    <p className="smart-greeting-text">{smartGreeting}</p>
-                  )}
-                  <p className="greeting-sub text-sm text-gray-400 max-w-md mx-auto">{T.greetingSub}</p>
-                </div>
-              )}
-
-              {/* Messages list */}
-              {msgs.length > 0 && (
-                <div className="messages-area">
-                  <div className="messages-header">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <span className="section-label">{T.messages}</span>
-                      <span className="section-count">{msgs.length}</span>
-                    </div>
-                    <select 
-                      className="channel-filter-select"
-                      value={channelFilter}
-                      onChange={(e) => setChannelFilter(e.target.value)}
-                      style={{ background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid rgba(255,255,255,0.1)', padding: '4px 8px', borderRadius: '4px', fontSize: '13px' }}
-                    >
-                      <option value="All Channels">All Channels</option>
-                      <option value="dashboard">Live Chat</option>
-                      <option value="voice">Voice</option>
-                      <option value="caspian-email">Email (Caspian)</option>
-                      <option value="caspian-telegram">Telegram (Caspian)</option>
-                    </select>
-                  </div>
-                  <div className="messages-list">
-                    {(Array.isArray(msgs) ? msgs : []).filter(m => channelFilter === "All Channels" || m.channel === channelFilter || (channelFilter === 'voice' && m.source === 'voice')).map((m, i) => {
-                      const meta = ACTION_META[m.action] || ACTION_META.NORMAL;
-                      const cardClass = `card-${m.action.toLowerCase()}`;
-                      
-                      // Determine Channel Icon
-                      const channelSrc = m.channel || (m.source === 'voice' ? 'voice' : 'dashboard');
-                      let ChannelIcon = MessageSquare;
-                      let channelName = "Live Chat";
-                      if (channelSrc === 'voice') { ChannelIcon = Mic; channelName = "Voice"; }
-                      else if (channelSrc === 'caspian-email') { ChannelIcon = Mail; channelName = "Email"; }
-                      else if (channelSrc === 'caspian-telegram') { ChannelIcon = Send; channelName = "Telegram"; }
-                      
-                      return (
-                        <div key={i} className={`message-row fade-in ${cardClass}`} style={{ animationDelay: `${Math.min(i * 20, 200)}ms` }}>
-                          {/* User message */}
-                          <div className="msg-user">
-                            <div className="msg-user-avatar">
-                              {m.message?.charAt(0)?.toUpperCase() || "?"}
-                            </div>
-                            <div className="msg-user-body">
-                              <div className="msg-user-text">{m.message}</div>
-                              <div className="msg-user-tags">
-                                <span className="msg-tag msg-tag-channel" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#333', color: '#fff' }}>
-                                  <ChannelIcon size={12} /> {channelName}
-                                </span>
-                                {m.language && m.language !== "en" && (
-                                  <span className="msg-tag" style={{ color: "white", background: LANGUAGE_META[m.language]?.color || "gray" }}>
-                                    🇮🇳 {LANGUAGE_META[m.language]?.name || m.language}
-                                  </span>
-                                )}
-                                <span className="msg-tag" style={{ color: scoreColor(m.score), background: scoreBg(m.score) }}>
-                                  {m.score?.toFixed(2)}
-                                </span>
-                                <span className="msg-tag" style={{ color: meta.color, background: meta.bg }}>
-                                  {T.actions[m.action]}
-                                </span>
-                                <span className="msg-tag msg-tag-emotion">
-                                  {emotionEmoji[m.emotion] || "😐"} {T.emotions[m.emotion] || m.emotion}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Bot reply */}
-                          {m.reply && (
-                            <div className="msg-bot">
-                              <div className="msg-bot-avatar">
-                                <CircleDot size={16} strokeWidth={2} />
-                              </div>
-                              <div className="msg-bot-body">
-                                <div className="msg-bot-label-row">
-                                  <span className="msg-bot-label">{T.botReply}</span>
-                                  {m.memory_used > 0 && (
-                                    <span className="memory-badge" title={`${T.memoryUsed} ${m.memory_used} ${T.pastInteractions}`}>
-                                      <Brain size={12} />
-                                    </span>
-                                  )}
-                                </div>
-                                <div className="msg-bot-text">{m.reply}</div>
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Score bar */}
-                          <div className="msg-score-track">
-                            <div className="msg-score-fill" style={{ width: `${(m.score || 0) * 100}%`, background: scoreColor(m.score) }} />
-                          </div>
-                        </div>
-                      );
-                    })}
-                    <div ref={chatEnd} />
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* ── Unified Voice + Chat Input ── */}
-            <div className="prompt-wrapper">
-              {micError && (
-                <div className="mic-error-banner">
-                  {micError}
-                  <button onClick={() => setMicError(null)}><X size={12} /></button>
-                </div>
-              )}
-              <div className="prompt-box">
-                <div className="prompt-input-row unified-input-row">
-                  {recording ? (
-                    <div className="recording-indicator">
-                      <span className="rec-dot" />
-                      <span className="rec-time">{fmtTime(recordTime)}</span>
-                      <div className="waveform-bars">
-                        {(Array.isArray(waveBars) ? waveBars : []).map((h, i) => (
-                          <span key={i} className="wave-bar" style={{ height: `${h}px` }} />
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      <button className="prompt-icon-btn" type="button">
-                        <img 
-                          src="/chat-eye-icon.png" 
-                          alt="Eye Icon" 
-                          style={{ width: '20px', height: '20px', filter: 'invert(54%) sepia(68%) saturate(2244%) hue-rotate(125deg) brightness(98%) contrast(101%)' }}
-                        />
-                      </button>
-                      <input
-                        ref={inputRef}
-                        value={input}
-                        onChange={e => setInput(e.target.value)}
-                        onKeyDown={e => e.key === "Enter" && !e.shiftKey && send()}
-                        placeholder={T.placeholder}
-                        className="prompt-input"
-                        id="main-input"
-                      />
-                    </>
-                  )}
-                  <div className="prompt-actions">
-                    <button
-                      className={`voice-toggle-btn compact ${voiceOn ? "active" : ""}`}
-                      onClick={() => setVoiceOn(!voiceOn)}
-                      title={`${T.voiceReply} ${voiceOn ? "ON" : "OFF"}`}
-                      type="button"
-                    >
-                      {voiceOn ? <Volume2 size={15} /> : <VolumeX size={15} />}
-                    </button>
-                    <button
-                      className={`mic-btn ${recording ? "recording" : ""}`}
-                      onClick={recording ? stopRecording : startRecording}
-                      type="button"
-                      title="Record voice"
-                    >
-                      {recording ? <MicOff size={16} /> : <Mic size={16} />}
-                    </button>
-                    <button className="send-btn" onClick={send} disabled={!input.trim() || recording} id="send-button">
-                      <ArrowUp size={16} strokeWidth={2.5} />
-                    </button>
-                  </div>
-                </div>
-                {speaking && (
-                  <div className="speaking-indicator inline-speaking">
-                    <div className="speaking-bars"><span /><span /><span /><span /><span /></div>
-                    <span>Speaking…</span>
-                  </div>
-                )}
+              {/* ── LEFT PANE: Modern Responsive Analytics Section (Replaced Chat) ── */}
+              <div className="chat-pane" style={{ overflowY: "auto", minWidth: 0, flex: 1 }}>
+                <DashboardAnalytics />
               </div>
-            </div>
-          </div>
 
           {/* ── RIGHT PANE: Emotional Intensity Meter ── */}
           <div className="analytics-pane">

@@ -1,6 +1,7 @@
 from groq import Groq
 import os
 from dotenv import load_dotenv
+import re
 from typing import List, Dict
 from ai.knowledge_ai import search_knowledge_base
 
@@ -50,14 +51,16 @@ def generate_reply(message: str, action: str, history: List[Dict[str, str]] = No
     messages.append({"role": "user", "content": message})
 
     response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="groq/compound-mini",
         messages=messages,
         max_tokens=150,
         temperature=0.7
     )
+    answer = response.choices[0].message.content.strip()
+    answer = re.sub(r'<think>.*?</think>', '', answer, flags=re.DOTALL).strip()
     return {
         "source": "ai_generated",
-        "answer": response.choices[0].message.content.strip(),
+        "answer": answer,
         "confidence": kb_result.get("confidence", 0.0)
     }
 

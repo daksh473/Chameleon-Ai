@@ -103,6 +103,80 @@
   color: #10b981;
 }
 
+/* ── Customer Care Grouping & Accordion ── */
+.sidebar-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 8px 12px;
+  margin-top: 10px;
+  margin-bottom: 4px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: #10b981; /* Emerald Green Header */
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.sidebar-group-header:hover {
+  background: rgba(16, 185, 129, 0.08);
+  color: #34d399;
+}
+
+.sidebar-group-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sidebar-group-badge {
+  font-size: 10px;
+  font-weight: 700;
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  padding: 1px 6px;
+  border-radius: 9999px;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.sidebar-group-items {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-left: 8px;
+  border-left: 1px solid rgba(16, 185, 129, 0.15);
+  margin-left: 12px;
+  margin-bottom: 8px;
+}
+
+.sidebar-nav-btn.nested {
+  padding: 7px 10px;
+  font-size: 12.5px;
+}
+
+.sidebar-badge-pill {
+  margin-left: auto;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
+  letter-spacing: 0.03em;
+}
+
+.sidebar-nav-btn.active .sidebar-badge-pill {
+  background: rgba(16, 185, 129, 0.25);
+  color: #10b981;
+}
+
 /* Section label */
 .sidebar-section-label {
   padding: 0 20px;

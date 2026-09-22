@@ -1,5 +1,5 @@
 import traceback
-from database import get_handoff, save_conversation_message
+from database import get_handoff, save_handoff_message
 
 def send_agent_message(handoff_id: int, text: str) -> dict:
     """
@@ -78,7 +78,7 @@ def send_agent_message(handoff_id: int, text: str) -> dict:
 
     # Save to conversation history using the unified schema
     if result["success"]:
-        save_conversation_message(
+        save_handoff_message(
             handoff_id=handoff_id,
             sender_type="agent",
             text=text,

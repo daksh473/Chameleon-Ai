@@ -16,15 +16,28 @@ import json
 import asyncio
 from ai.proactive_alerts import proactive_alert_cron
 
-from routers import tickets, conversation, knowledge, analytics, voice, email, crm, handoff, memory, predict, language, excel, telegram
+from routers import (
+    support, billing, inventory, tasks, crm, analytics, tenants,
+    tickets, conversation, knowledge, voice, email, handoff, memory, predict, language, excel, telegram
+)
+from db import Base, engine, SessionLocal
+from core.tenancy import get_or_create_default_tenant
 import httpx
 import threading
 from caspian_agent import start_caspian_listener
 
+import os
+from fastapi.staticfiles import StaticFiles
+
 load_dotenv()
 init_db()
 
-app = FastAPI(title="Chameleon AI")
+app = FastAPI(title="Chameleon AI — Business Management System")
+
+# Mount static files for generated PDF invoices and documents
+static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
+os.makedirs(static_dir, exist_ok=True)
+app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 app.add_middleware(
     CORSMiddleware,
@@ -36,6 +49,24 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup_event():
+    # Initialize PostgreSQL Multi-tenant Schema & Seed Default Tenant
+    try:
+        from migrate_legacy_db import migrate_legacy_tables
+        migrate_legacy_tables()
+        Base.metadata.create_all(bind=engine)
+        with SessionLocal() as db:
+            default_t = get_or_create_default_tenant(db)
+            print(f"Multi-tenant PostgreSQL initialized. Default Tenant: {default_t.name} [{default_t.id}]")
+    except Exception as e:
+        print(f"PostgreSQL initialization error: {e}")
+
+    # Start APScheduler background billing overdue scanner
+    try:
+        from services.billing_scheduler import start_billing_scheduler
+        start_billing_scheduler()
+    except Exception as e:
+        print(f"Billing scheduler startup error: {e}")
+
     asyncio.create_task(proactive_alert_cron())
     try:
         result = backfill_memories_from_db()
@@ -48,19 +79,38 @@ async def startup_event():
     thread.start()
     print("Caspian listener thread started.")
 
+
+@app.on_event("shutdown")
+def shutdown_event():
+    try:
+        from services.billing_scheduler import stop_billing_scheduler
+        stop_billing_scheduler()
+    except Exception:
+        pass
+
+
+# ── 6 Core BMS Module Routers ──
+app.include_router(support.router)      # /support
+app.include_router(crm.router)          # /crm
+app.include_router(billing.router)      # /billing
+app.include_router(inventory.router)    # /inventory
+app.include_router(tasks.router)        # /tasks
+app.include_router(analytics.router)    # /analytics
+app.include_router(tenants.router)      # /tenants
+
+# ── Auxiliary & Legacy Compatibility Routers ──
 app.include_router(tickets.router)
 app.include_router(conversation.router)
 app.include_router(knowledge.router)
-app.include_router(analytics.router)
 app.include_router(voice.router)
 app.include_router(email.router)
-app.include_router(crm.router)
 app.include_router(handoff.router)
 app.include_router(memory.router)
 app.include_router(predict.router)
 app.include_router(language.router)
 app.include_router(excel.router)
 app.include_router(telegram.router)
+
 
 class AgentConnectionManager:
     def __init__(self):
@@ -234,22 +284,47 @@ async def websocket_endpoint(websocket: WebSocket):
     crm_customer_id = None
     chat_history = []
 
-    greeting_data = generate_smart_greeting(customer_id)
-    profile = get_customer_profile_for_dashboard(customer_id)
-    await websocket.send_text(json.dumps({
-        "type": "greeting",
-        "message": greeting_data["greeting"],
-        "is_returning": greeting_data["is_returning"],
-        "memory_count": greeting_data["memory_count"],
-        "profile": profile
-    }))
+    # Send greeting — wrapped in try/except so a failed AI call doesn't kill the connection
+    try:
+        greeting_data = generate_smart_greeting(customer_id)
+        profile = get_customer_profile_for_dashboard(customer_id)
+        await websocket.send_text(json.dumps({
+            "type": "greeting",
+            "message": greeting_data["greeting"],
+            "is_returning": greeting_data["is_returning"],
+            "memory_count": greeting_data["memory_count"],
+            "profile": profile
+        }))
+    except Exception as e:
+        print(f"Greeting generation failed: {e}")
+        await websocket.send_text(json.dumps({
+            "type": "greeting",
+            "message": "Welcome to Sentiment AI! How can I help you today?",
+            "is_returning": False,
+            "memory_count": 0,
+            "profile": {}
+        }))
 
     try:
         while True:
             raw = await websocket.receive_text()
-            response, customer_id, crm_customer_id = await process_message(
-                raw, session_id, customer_id, chat_history, crm_customer_id
-            )
-            await websocket.send_text(json.dumps(response))
+            try:
+                response, customer_id, crm_customer_id = await process_message(
+                    raw, session_id, customer_id, chat_history, crm_customer_id
+                )
+                await websocket.send_text(json.dumps(response))
+            except Exception as msg_err:
+                print(f"Message processing error: {msg_err}")
+                await websocket.send_text(json.dumps({
+                    "type": "message",
+                    "message": raw,
+                    "score": 0.5,
+                    "emotion": "neutral",
+                    "action": "NORMAL",
+                    "reply": "I'm having trouble processing your request right now. Please try again.",
+                    "language": "en",
+                    "memory_used": 0,
+                    "source": "text"
+                }))
     except Exception as e:
         print(f"Client disconnected: {e}")

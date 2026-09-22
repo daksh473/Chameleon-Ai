@@ -89,12 +89,13 @@ Write only the greeting message, nothing else."""
 
     try:
         response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="groq/compound-mini",
             messages=[{"role": "user", "content": prompt}],
             max_tokens=100,
             temperature=0.7
         )
         greeting = response.choices[0].message.content.strip()
+        greeting = re.sub(r'<think>.*?</think>', '', greeting, flags=re.DOTALL).strip()
     except Exception:
         last_issue = ""
         if summary and summary.get("common_issues"):
@@ -125,16 +126,20 @@ Make sure to extract any language preference if the customer is speaking in an I
 
     try:
         response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="groq/compound-mini",
             messages=[{"role": "user", "content": prompt}],
             max_tokens=300,
             temperature=0.3
         )
         text = response.choices[0].message.content.strip()
+        text = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL).strip()
         if text.startswith("```"):
             text = text.split("```")[1]
             if text.startswith("json"):
                 text = text[4:]
+        json_match = re.search(r'\[.*\]', text, re.DOTALL)
+        if json_match:
+            text = json_match.group()
         memories = json.loads(text)
         for mem in memories:
             if isinstance(mem, dict) and mem.get("key") and mem.get("value"):
@@ -178,16 +183,20 @@ Memories: {json.dumps([{{'type': m['memory_type'], 'value': m['value']}} for m i
 
     try:
         response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="groq/compound-mini",
             messages=[{"role": "user", "content": prompt}],
             max_tokens=400,
             temperature=0.4
         )
         text = response.choices[0].message.content.strip()
+        text = re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL).strip()
         if text.startswith("```"):
             text = text.split("```")[1]
             if text.startswith("json"):
                 text = text[4:]
+        json_match = re.search(r'\{.*\}', text, re.DOTALL)
+        if json_match:
+            text = json_match.group()
         data = json.loads(text)
     except Exception:
         data = {

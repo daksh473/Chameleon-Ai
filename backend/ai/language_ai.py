@@ -1,5 +1,6 @@
 from groq import Groq
 import os
+import re
 
 client = Groq(api_key=os.environ.get("GROQ_API_KEY", "mock_key"))
 
@@ -10,7 +11,7 @@ def detect_language(text: str) -> str:
     """
     try:
         response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="groq/compound-mini",
             messages=[
                 {
                     "role": "system",
@@ -21,7 +22,8 @@ def detect_language(text: str) -> str:
             temperature=0,
             max_tokens=10
         )
-        code = response.choices[0].message.content.strip().lower()
+        code = response.choices[0].message.content.strip()
+        code = re.sub(r'<think>.*?</think>', '', code, flags=re.DOTALL).strip().lower()
         valid_codes = ["hi", "hin", "bn", "ta", "te", "mr", "gu", "pa", "kn", "ml", "or", "ur", "en"]
         if code in valid_codes:
             return code
@@ -36,7 +38,7 @@ def translate_text(text: str, target_language_code: str) -> str:
     """
     try:
         response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="groq/compound-mini",
             messages=[
                 {
                     "role": "system",
@@ -46,7 +48,9 @@ def translate_text(text: str, target_language_code: str) -> str:
             ],
             temperature=0.3
         )
-        return response.choices[0].message.content.strip()
+        translated = response.choices[0].message.content.strip()
+        translated = re.sub(r'<think>.*?</think>', '', translated, flags=re.DOTALL).strip()
+        return translated
     except Exception as e:
         print(f"Translation error: {e}")
         return text

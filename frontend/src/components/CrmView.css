@@ -15,10 +15,12 @@
 }
 
 .crm-title {
-  font-size: 1.5rem;
-  font-weight: 600;
+  font-size: 1.6rem;
+  font-weight: 700;
   margin: 0;
+  color: #10b981;
 }
+
 
 .crm-tabs {
   display: flex;
@@ -83,12 +85,13 @@
   justify-content: center;
   font-size: 1.5rem;
 }
-.bg-blue { background: rgba(59,130,246,0.1); color: #3b82f6; }
+.bg-blue { background: rgba(16,185,129,0.1); color: #10b981; }
 .bg-emerald { background: rgba(16,185,129,0.1); color: #10b981; }
 .bg-purple { background: rgba(139,92,246,0.1); color: #8b5cf6; }
 .bg-green { background: rgba(48,164,108,0.1); color: #30A46C; }
 .bg-red { background: rgba(229,72,77,0.1); color: #E5484D; }
 .bg-yellow { background: rgba(245,166,35,0.1); color: #F5A623; }
+
 
 .kpi-info {
   display: flex;
@@ -157,10 +160,11 @@
 
 .f-bar {
   width: 100%;
-  background: linear-gradient(180deg, #3b82f6 0%, rgba(59,130,246,0.2) 100%);
+  background: linear-gradient(180deg, #10b981 0%, rgba(16,185,129,0.2) 100%);
   border-radius: 4px 4px 0 0;
   transition: height 0.5s ease;
 }
+
 
 .f-bar-wrap span {
   position: absolute;
@@ -280,13 +284,25 @@
   justify-content: space-between;
   align-items: center;
   font-weight: 600;
+  color: #10b981;
 }
-.kanban-col-header.lead { border-color: #3b82f6; }
-.kanban-col-header.qualified { border-color: #8b5cf6; }
-.kanban-col-header.proposal { border-color: #f5a623; }
-.kanban-col-header.negotiation { border-color: #f56565; }
-.kanban-col-header.won { border-color: #10b981; }
-.kanban-col-header.lost { border-color: #6b7280; }
+.kanban-col-header .col-title {
+  color: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+.kanban-col-header .col-val {
+  color: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+.kanban-col-header.lead { border-color: #10b981; color: #10b981; }
+.kanban-col-header.qualified { border-color: #8b5cf6; color: #a78bfa; }
+.kanban-col-header.proposal { border-color: #f5a623; color: #fbbf24; }
+.kanban-col-header.negotiation { border-color: #f56565; color: #f87171; }
+.kanban-col-header.won { border-color: #10b981; color: #10b981; }
+.kanban-col-header.lost { border-color: #6b7280; color: #9ca3af; }
+
 
 .kanban-cards {
   padding: 1rem;
@@ -342,7 +358,8 @@
   font-weight: 500;
   text-transform: uppercase;
 }
-.kanban-badge.lead { background: rgba(59,130,246,0.2); color: #3b82f6; }
+.kanban-badge.lead { background: rgba(16,185,129,0.2); color: #10b981; }
+
 .kanban-badge.qualified { background: rgba(139,92,246,0.2); color: #8b5cf6; }
 .kanban-badge.proposal { background: rgba(245,166,35,0.2); color: #f5a623; }
 .kanban-badge.negotiation { background: rgba(245,101,101,0.2); color: #f56565; }

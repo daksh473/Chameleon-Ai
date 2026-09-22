@@ -1,10 +1,11 @@
 import os
 import json
+import re
 from groq import Groq
 
 # Same initialization as other AI files
 groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
-MODEL_NAME = "llama-3.3-70b-versatile"
+MODEL_NAME = "groq/compound-mini"
 
 def calculate_risk_score(customer_data, timeline):
     """
@@ -37,12 +38,16 @@ def calculate_risk_score(customer_data, timeline):
             temperature=0.3
         )
         content = response.choices[0].message.content.strip()
+        content = re.sub(r'<think>.*?</think>', '', content, flags=re.DOTALL).strip()
         # Clean up if markdown block
         if content.startswith("```json"):
             content = content[7:-3].strip()
         elif content.startswith("```"):
             content = content[3:-3].strip()
             
+        json_match = re.search(r'\{.*\}', content, re.DOTALL)
+        if json_match:
+            content = json_match.group()
         data = json.loads(content)
         return data
     except Exception as e:
@@ -78,11 +83,15 @@ def generate_forecast(deals):
             temperature=0.3
         )
         content = response.choices[0].message.content.strip()
+        content = re.sub(r'<think>.*?</think>', '', content, flags=re.DOTALL).strip()
         if content.startswith("```json"):
             content = content[7:-3].strip()
         elif content.startswith("```"):
             content = content[3:-3].strip()
             
+        json_match = re.search(r'\{.*\}', content, re.DOTALL)
+        if json_match:
+            content = json_match.group()
         data = json.loads(content)
         return data
     except Exception as e:
@@ -123,11 +132,15 @@ def generate_customer_summary(customer_data, timeline):
             temperature=0.5
         )
         content = response.choices[0].message.content.strip()
+        content = re.sub(r'<think>.*?</think>', '', content, flags=re.DOTALL).strip()
         if content.startswith("```json"):
             content = content[7:-3].strip()
         elif content.startswith("```"):
             content = content[3:-3].strip()
             
+        json_match = re.search(r'\{.*\}', content, re.DOTALL)
+        if json_match:
+            content = json_match.group()
         data = json.loads(content)
         return data
     except Exception as e:
@@ -166,11 +179,15 @@ def auto_route_agent(issue_text):
             temperature=0.1
         )
         content = response.choices[0].message.content.strip()
+        content = re.sub(r'<think>.*?</think>', '', content, flags=re.DOTALL).strip()
         if content.startswith("```json"):
             content = content[7:-3].strip()
         elif content.startswith("```"):
             content = content[3:-3].strip()
             
+        json_match = re.search(r'\{.*\}', content, re.DOTALL)
+        if json_match:
+            content = json_match.group()
         data = json.loads(content)
         return data
     except Exception as e:

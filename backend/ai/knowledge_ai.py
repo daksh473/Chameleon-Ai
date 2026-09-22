@@ -1,6 +1,7 @@
 import json
 import os
 from groq import Groq
+import re
 from dotenv import load_dotenv
 from database import get_all_kb_entries, increment_kb_usage
 
@@ -38,16 +39,21 @@ Return STRICTLY a JSON object with this structure (no markdown formatting, just 
 """
     try:
         response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[{"role": "system", "content": prompt}],
+            model="groq/compound-mini",
+            messages=[{"role": "user", "content": prompt}],
             max_tokens=150,
             temperature=0.0
         )
         content = response.choices[0].message.content.strip()
+        content = re.sub(r'<think>.*?</think>', '', content, flags=re.DOTALL).strip()
         if content.startswith("```json"):
             content = content[7:-3].strip()
         elif content.startswith("```"):
             content = content[3:-3].strip()
+            
+        json_match = re.search(r'\{.*\}', content, re.DOTALL)
+        if json_match:
+            content = json_match.group()
             
         result = json.loads(content)
         

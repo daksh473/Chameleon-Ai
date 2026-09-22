@@ -11,7 +11,7 @@ const STAGE_LABELS = {
 };
 
 const STATUS_COLORS = {
-  lead: { bg: "rgba(59,130,246,0.1)", text: "#3B82F6" },
+  lead: { bg: "rgba(16,185,129,0.1)", text: "#10B981" },
   prospect: { bg: "rgba(245,166,35,0.1)", text: "#F5A623" },
   customer: { bg: "rgba(48,164,108,0.1)", text: "#30A46C" },
   churned: { bg: "rgba(229,72,77,0.1)", text: "#E5484D" }
@@ -19,9 +19,10 @@ const STATUS_COLORS = {
 
 const SOURCE_COLORS = {
   chat: { bg: "rgba(48,164,108,0.12)", text: "#30A46C" },
-  email: { bg: "rgba(59,130,246,0.12)", text: "#3B82F6" },
+  email: { bg: "rgba(16,185,129,0.12)", text: "#10B981" },
   manual: { bg: "rgba(160,160,160,0.1)", text: "#A0A0A0" },
 };
+
 
 export default function CrmView() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -187,7 +188,7 @@ export default function CrmView() {
     try {
       await fetch(`${API}/crm/deals`, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({...newDeal, customer_id: parseInt(newDeal.customer_id) || selectedProfileId})
+        body: JSON.stringify({...newDeal, customer_id: newDeal.customer_id || selectedProfileId})
       });
       setShowAddDeal(false);
       if (activeTab === "profile") {
@@ -302,10 +303,10 @@ export default function CrmView() {
   const getIconForType = (type) => {
     switch(type) {
       case 'email': 
-      case 'caspian-email': return <Mail size={14} className="text-blue-400"/>;
+      case 'caspian-email': return <Mail size={14} className="text-emerald-400"/>;
       case 'chat': 
       case 'dashboard': return <MessageSquare size={14} className="text-green-400"/>;
-      case 'caspian-telegram': return <Send size={14} className="text-blue-400"/>;
+      case 'caspian-telegram': return <Send size={14} className="text-emerald-400"/>;
       case 'ticket': return <Ticket size={14} className="text-purple-400"/>;
       case 'voice': return <Mic size={14} className="text-green-400"/>;
       default: return <MessageSquare size={14} className="text-gray-400"/>;
@@ -329,7 +330,7 @@ export default function CrmView() {
     <div className="crm-view">
       {/* HEADER NAV */}
       <div className="crm-header">
-        <h2 className="crm-title">
+        <h2 className="crm-title text-emerald-400 font-bold tracking-tight">
           {activeTab === "profile" ? (
             <div className="flex items-center gap-2 cursor-pointer hover:text-gray-300" onClick={() => setActiveTab("customers")}>
               <ArrowLeft size={20} /> Back to Customers
@@ -357,7 +358,7 @@ export default function CrmView() {
           <div className="crm-overview animate-in fade-in">
             <div className="crm-kpi-grid">
               <div className="crm-kpi-card">
-                <div className="kpi-icon bg-blue"><Users size={18}/></div>
+                <div className="kpi-icon bg-emerald"><Users size={18}/></div>
                 <div className="kpi-info"><span>Total Customers</span><strong>{stats.total_customers}</strong></div>
               </div>
               <div className="crm-kpi-card">
@@ -366,11 +367,11 @@ export default function CrmView() {
               </div>
               <div className="crm-kpi-card">
                 <div className="kpi-icon bg-purple"><Target size={18}/></div>
-                <div className="kpi-info"><span>Pipeline Value</span><strong>${stats.total_deals_value.toLocaleString()}</strong></div>
+                <div className="kpi-info"><span>Pipeline Value</span><strong>${(stats.total_deals_value ?? stats.total_pipeline_value ?? 0).toLocaleString()}</strong></div>
               </div>
               <div className="crm-kpi-card">
                 <div className="kpi-icon bg-green"><DollarSign size={18}/></div>
-                <div className="kpi-info"><span>Won Revenue</span><strong>${stats.won_deals_value.toLocaleString()}</strong></div>
+                <div className="kpi-info"><span>Won Revenue</span><strong>${(stats.won_deals_value ?? stats.won_revenue ?? 0).toLocaleString()}</strong></div>
               </div>
               <div className="crm-kpi-card">
                 <div className="kpi-icon bg-red"><Activity size={18}/></div>
@@ -612,7 +613,7 @@ export default function CrmView() {
                       <div key={d.id} className="linked-item">
                         <div className="font-semibold">{d.title}</div>
                         <div className="flex-between text-sm mt-1">
-                          <span className="text-green-400">${d.value.toLocaleString()}</span>
+                          <span className="text-green-400">${(d.value ?? 0).toLocaleString()}</span>
                           <span className={`kanban-badge ${d.stage} scale-75 origin-right`}>{STAGE_LABELS[d.stage]}</span>
                         </div>
                       </div>
@@ -656,7 +657,7 @@ export default function CrmView() {
                 >
                   <div className={`kanban-col-header ${stage}`}>
                     <span className="col-title">{STAGE_LABELS[stage]} ({colDeals.length})</span>
-                    <span className="col-val">${colValue.toLocaleString()}</span>
+                    <span className="col-val">${(colValue ?? 0).toLocaleString()}</span>
                   </div>
                   <div className="kanban-cards">
                     {colDeals.map(d => (
@@ -667,7 +668,7 @@ export default function CrmView() {
                         onDragStart={(e) => handleDragStart(e, d.id)}
                       >
                         <div className="k-card-title">{d.title}</div>
-                        <div className="k-card-val">${d.value.toLocaleString()}</div>
+                        <div className="k-card-val">${(d.value ?? 0).toLocaleString()}</div>
                         <div className="k-card-cust"><Users size={12}/> {d.customer_name}</div>
                         <div className="k-card-meta">
                           <span>{d.probability}% Prob</span>
@@ -700,7 +701,7 @@ export default function CrmView() {
                   <tr key={d.id}>
                     <td className="font-semibold text-white">{d.title}</td>
                     <td>{d.customer_name}</td>
-                    <td>${d.value.toLocaleString()}</td>
+                    <td>${(d.value ?? 0).toLocaleString()}</td>
                     <td>
                       <span className={`kanban-badge ${d.stage}`}>{STAGE_LABELS[d.stage]}</span>
                     </td>

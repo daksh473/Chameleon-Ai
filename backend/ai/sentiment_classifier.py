@@ -1,6 +1,7 @@
 from groq import Groq
 import os
 import json
+import re
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -18,7 +19,7 @@ Return ONLY valid JSON. Nothing else."""
 
 def classify_ticket(message: str) -> dict:
     response = client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
+        model="groq/compound-mini",
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": message}
@@ -27,6 +28,10 @@ def classify_ticket(message: str) -> dict:
         temperature=0
     )
     raw = response.choices[0].message.content.strip()
+    raw = re.sub(r'<think>.*?</think>', '', raw, flags=re.DOTALL).strip()
+    json_match = re.search(r'\{.*\}', raw, re.DOTALL)
+    if json_match:
+        raw = json_match.group()
     return json.loads(raw)
 
 def analyze_sentiment(message: str) -> dict:
